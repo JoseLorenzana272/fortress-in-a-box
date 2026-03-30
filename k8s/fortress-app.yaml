@@ -9,8 +9,8 @@ spec:
     runAsUser: 101
   containers:
     - name: secure-nginx
-      image: fortress-in-a-box:latest
-      imagePullPolicy: Never
+      image: ghcr.io/joselorenzana272/fortress-in-a-box:latest
+      imagePullPolicy: Always
       # we're not root in CONTAINER LEVEL
       securityContext:
         runAsNonRoot: true
