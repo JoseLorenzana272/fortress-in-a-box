@@ -1,25 +1,39 @@
 name: Build test
 
 on:
-    push:
+  push:
 
 jobs:
-    build-image:
-        runs-on: ubuntu-latest
+  build-image:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Check out the repository
-              uses: actions/checkout@v4
+    permissions:
+      contents: read
+      packages: write   # REQUIRED for GHCR
 
-            - name: Build the Docker image
-              run: docker build -t fortress-in-a-box .
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
 
-            - name: Run Trivy scanner
-              uses: aquasecurity/trivy-action@0.35.0
-              with:
-                image-ref: fortress-in-a-box
-                format: 'table'
-                exit-code: '1'
-                vuln-type: 'os,library'
-                severity: 'CRITICAL,HIGH'
-                ignore-unfixed: true
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest .
+
+      - name: Run Trivy scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest
+          format: table
+          exit-code: '1'
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Push to GHCR
+        run: docker push ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest

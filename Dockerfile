@@ -1,6 +1,5 @@
-FROM nginx:alpine
-RUN apk update && apk upgrade
+FROM nginxinc/nginx-unprivileged:alpine
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]

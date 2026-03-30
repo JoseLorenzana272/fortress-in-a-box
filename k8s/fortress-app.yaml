@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortress-app-secure
+spec:
+  # we're not root in POD LEVEL
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+  containers:
+    - name: secure-nginx
+      image: fortress-in-a-box:latest
+      imagePullPolicy: Never
+      # we're not root in CONTAINER LEVEL
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
