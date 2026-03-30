@@ -15,7 +15,7 @@ jobs:
               run: docker build -t fortress-in-a-box .
 
             - name: Run Trivy scanner
-              uses: aquasecurity/trivy-action@0.33.1
+              uses: aquasecurity/trivy-action@0.35.0
               with:
                 image-ref: fortress-in-a-box
                 format: 'table'
