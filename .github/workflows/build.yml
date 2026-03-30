@@ -23,17 +23,22 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest .
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository }}:latest \
+            -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
 
       - name: Run Trivy scanner
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest
+          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
           format: table
           exit-code: '1'
           vuln-type: os,library
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      - name: Push to GHCR
-        run: docker push ghcr.io/${{ github.repository_owner }}/fortress-in-a-box:latest
+      - name: Push image
+        run: |
+          docker push ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
