@@ -1,0 +1,21 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-root-user
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - message: "FORTRESS SECURITY: Running as root is not allowed!"
+      expression: >
+        object.spec.securityContext.runAsNonRoot == true &&
+        object.spec.containers.all(c,
+          has(c.securityContext) &&
+          c.securityContext.runAsNonRoot == true
+        )
