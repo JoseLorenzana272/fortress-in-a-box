@@ -8,6 +8,8 @@
 ![Kubernetes](https://img.shields.io/badge/kubernetes-ready-blue)
 ![Made with](https://img.shields.io/badge/made%20with-❤️%20for%20NGOs-red)
 
+<img width="1280" height="720" alt="fortress-logo" src="https://github.com/user-attachments/assets/b399b965-9f2b-43fb-9b2c-182e6c9d7d63" />
+
 ## Who This Is For
 
 If you are a small investigative journalism group, a human rights organization,
