@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "bfhmkc8ygtji8c"
+        "uid": "${DS_LOKI}"
       },
       "fieldConfig": {
         "defaults": {
@@ -114,7 +114,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "bfhmkc8ygtji8c"
+        "uid": "${DS_LOKI}"
       },
       "fieldConfig": {
         "defaults": {
@@ -197,7 +197,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "bfhmkc8ygtji8c"
+        "uid": "${DS_LOKI}"
       },
       "fieldConfig": {
         "defaults": {},
@@ -224,7 +224,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "bfhmkc8ygtji8c"
+            "uid": "${DS_LOKI}"
           },
           "direction": "backward",
           "editorMode": "code",

@@ -168,6 +168,10 @@ install_monitoring() {
         --set adminPassword="$GRAFANA_PASSWORD" \
         --set service.type=ClusterIP \
         --set persistence.enabled=false \
+        --set sidecar.dashboards.enabled=true \
+        --set sidecar.dashboards.label=grafana_dashboard \
+        --set sidecar.datasources.enabled=true \
+        --set sidecar.datasources.label=grafana_datasource \
         --wait
 
     print_step "Importing Fortress security dashboard..."
@@ -175,6 +179,12 @@ install_monitoring() {
         --from-file=k8s/grafana/fortress-dashboard.json \
         --namespace monitoring \
         --dry-run=client -o yaml | kubectl apply -f -
+
+    kubectl label configmap fortress-dashboard \
+        -n monitoring \
+        grafana_dashboard=1 --overwrite
+
+    kubectl apply -f k8s/grafana/datasource-loki.yaml
 
     print_success "Monitoring stack installed."
 }
