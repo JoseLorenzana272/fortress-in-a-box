@@ -11,6 +11,7 @@ spec:
     path: k8s
     directory:
       recurse: true
+      exclude: '{grafana/*.json,grafana/*.yaml,examples/*}'
   destination:
     server: https://kubernetes.default.svc
     namespace: default
