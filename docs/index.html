@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fortress in a Box — Enterprise Kubernetes Security for NGOs</title>
+  <meta name="description" content="Enterprise-grade Kubernetes security for NGOs, journalists, and activists — delivered in a single command. Free and open source.">
+  <link rel="icon" href="logo.png">
+  <style>
+    :root {
+      --blue: #326ce5;
+      --blue-dark: #2457b8;
+      --blue-light: #e8f0fe;
+      --navy: #1a2744;
+      --white: #ffffff;
+      --gray-50: #f7f8fa;
+      --gray-100: #eef0f4;
+      --gray-200: #dce0e8;
+      --gray-400: #9aa0af;
+      --gray-600: #5a6170;
+      --gray-800: #303643;
+      --green: #1a8f3c;
+      --red: #c5221f;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      --max-width: 1140px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      color: var(--gray-800);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: var(--mono);
+      font-size: .9em;
+      background: var(--gray-50);
+      padding: .15em .4em;
+      border-radius: 3px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--navy);
+      color: rgba(255,255,255,.7);
+      font-size: .8rem;
+      padding: .4rem 0;
+      text-align: center;
+    }
+    .topbar a { color: #fff; font-weight: 600; }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 60px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--navy);
+      text-decoration: none;
+    }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-logo svg { width: 32px; height: 32px; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--gray-600);
+      font-size: .9rem;
+      font-weight: 500;
+      padding: .45rem .85rem;
+      border-radius: 4px;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+    }
+    .nav-links a:hover { background: var(--gray-50); color: var(--gray-800); text-decoration: none; }
+    .nav-gh {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      color: var(--gray-800) !important;
+      padding: .4rem .9rem;
+      border-radius: 4px;
+      font-size: .85rem;
+      font-weight: 500;
+    }
+    .nav-gh:hover { border-color: var(--gray-400); background: var(--gray-100); text-decoration: none; }
+    .nav-gh svg { width: 16px; height: 16px; fill: var(--gray-800); }
+
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray-800);
+      padding: .4rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(170deg, var(--navy) 0%, #2c3e6b 100%);
+      color: #fff;
+      text-align: center;
+      padding: 5rem 2rem 4.5rem;
+    }
+    .hero-inner {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .hero-logo {
+      height: 200px;
+      margin-bottom: 1.5rem;
+      filter: brightness(0) invert(1);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -.01em;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,.8);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+      line-height: 1.65;
+    }
+    .hero-btns {
+      display: flex;
+      gap: .75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: .65rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+    .btn:hover { text-decoration: none; }
+    .btn-white {
+      background: #fff;
+      color: var(--navy);
+    }
+    .btn-white:hover { background: var(--gray-100); }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.4);
+    }
+    .btn-outline:hover { border-color: #fff; }
+
+    .hero-cmd {
+      display: inline-block;
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px;
+      padding: .55rem 1.25rem;
+      font-family: var(--mono);
+      font-size: .85rem;
+      color: rgba(255,255,255,.85);
+    }
+    .hero-cmd .dollar { color: var(--blue-light); user-select: none; margin-right: .4rem; }
+
+    /* ── Sections ── */
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 1.5rem; }
+    section { padding: 4rem 0; }
+
+    .section-heading {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .section-heading h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: .5rem;
+    }
+    .section-heading p {
+      color: var(--gray-600);
+      font-size: 1rem;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ── Features (Kubernetes-style 3 col) ── */
+    .features { background: var(--white); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    .feature {
+      text-align: center;
+      padding: 1rem .5rem;
+    }
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1rem;
+      background: var(--blue-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .feature h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: .4rem;
+    }
+    .feature p {
+      font-size: .88rem;
+      color: var(--gray-600);
+      line-height: 1.55;
+    }
+
+    /* ── Incidents ── */
+    .incidents { background: var(--gray-50); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+    .incident-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .incident-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 1.5rem;
+    }
+    .incident-card .label {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--red);
+      background: #fce8e6;
+      padding: .15rem .5rem;
+      border-radius: 3px;
+      margin-bottom: .6rem;
+    }
+    .incident-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: .4rem; color: var(--navy); }
+    .incident-card p { font-size: .88rem; color: var(--gray-600); line-height: 1.55; }
+
+    .incidents-note {
+      text-align: center;
+      margin-top: 1.75rem;
+      font-size: .95rem;
+      color: var(--gray-600);
+    }
+    .incidents-note strong { color: var(--navy); }
+
+    /* ── Threats ── */
+    .threats { background: var(--white); }
+    .threat-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      overflow: hidden;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .threat-table thead { background: var(--navy); color: #fff; }
+    .threat-table th {
+      text-align: left;
+      padding: .75rem 1.25rem;
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .threat-table td {
+      padding: .75rem 1.25rem;
+      font-size: .9rem;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .threat-table tr:last-child td { border-bottom: none; }
+    .threat-table tr:nth-child(even) { background: var(--gray-50); }
+    .threat-table td:first-child { font-weight: 500; color: var(--navy); }
+    .threat-table td:last-child { color: var(--gray-600); }
+
+    /* ── Architecture ── */
+    .architecture { background: var(--gray-50); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+    .arch-box {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 2rem;
+      max-width: 680px;
+      margin: 0 auto;
+      overflow-x: auto;
+    }
+    .arch-diagram {
+      font-family: var(--mono);
+      font-size: .82rem;
+      line-height: 1.9;
+      color: var(--gray-600);
+      white-space: pre;
+    }
+    .arch-diagram .hl { color: var(--blue); font-weight: 600; }
+    .arch-diagram .hl-dark { color: var(--navy); font-weight: 600; }
+    .arch-diagram .hl-red { color: var(--red); font-weight: 600; }
+    .arch-diagram .hl-green { color: var(--green); font-weight: 600; }
+    .arch-diagram .dim { color: var(--gray-400); }
+
+    /* ── Policies ── */
+    .policies { background: var(--white); }
+    .policies-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .policy-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 1.25rem;
+      border-left: 3px solid var(--blue);
+    }
+    .policy-card h4 {
+      font-family: var(--mono);
+      font-size: .82rem;
+      color: var(--blue);
+      margin-bottom: .3rem;
+    }
+    .policy-card p {
+      font-size: .85rem;
+      color: var(--gray-600);
+      line-height: 1.5;
+    }
+
+    /* ── Install ── */
+    .install { background: var(--gray-50); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+    .install-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    .install-steps { list-style: none; counter-reset: steps; }
+    .install-steps li {
+      counter-increment: steps;
+      padding: .75rem 0;
+      padding-left: 2.5rem;
+      position: relative;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .install-steps li:last-child { border-bottom: none; }
+    .install-steps li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 0;
+      top: .75rem;
+      width: 26px;
+      height: 26px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 50%;
+      font-size: .8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .install-steps li strong { display: block; color: var(--navy); margin-bottom: .1rem; }
+    .install-steps li span { font-size: .88rem; color: var(--gray-600); }
+
+    .install-code {
+      background: var(--navy);
+      color: #c8d1e0;
+      border-radius: 6px;
+      padding: 1.5rem 1.75rem;
+      font-family: var(--mono);
+      font-size: .82rem;
+      line-height: 2;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .install-code .ps { color: #7eb8f7; user-select: none; }
+    .install-code .cmt { color: #6b7a96; }
+
+    /* ── Dashboards ── */
+    .dashboards { background: var(--white); }
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .dash-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 1.5rem;
+    }
+    .dash-card h3 { font-size: 1.05rem; font-weight: 600; color: var(--navy); margin-bottom: .15rem; }
+    .dash-card .port { font-family: var(--mono); font-size: .8rem; color: var(--blue); margin-bottom: .6rem; }
+    .dash-card p { font-size: .88rem; color: var(--gray-600); margin-bottom: .75rem; line-height: 1.55; }
+    .dash-card code {
+      display: block;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-100);
+      padding: .45rem .65rem;
+      border-radius: 4px;
+      font-size: .75rem;
+      color: var(--gray-600);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    /* ── CTA ── */
+    .cta {
+      background: linear-gradient(170deg, var(--navy) 0%, #2c3e6b 100%);
+      color: #fff;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .cta h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: .5rem; }
+    .cta p { color: rgba(255,255,255,.75); font-size: 1rem; margin-bottom: 1.5rem; }
+    .cta .btn-white { margin-right: .5rem; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,.5);
+      padding: 2rem 0;
+      font-size: .85rem;
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    footer a { color: rgba(255,255,255,.75); }
+    footer a:hover { color: #fff; }
+    .footer-links { display: flex; gap: 1.5rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .incident-grid { grid-template-columns: 1fr; }
+      .policies-grid { grid-template-columns: 1fr; }
+      .dash-grid { grid-template-columns: 1fr; }
+      .install-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .mobile-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-bottom: 1px solid var(--gray-200);
+        padding: 1rem 1.5rem;
+        gap: .5rem;
+        z-index: 99;
+      }
+      .hero { padding: 3.5rem 1.5rem 3rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      section { padding: 3rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  Open source Kubernetes security platform &mdash;
+  <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener">Star on GitHub</a>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <img src="caption.png" alt="Fortress in a Box" style="height:32px;">
+      Fortress in a Box
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#why">Why</a></li>
+      <li><a href="#layers">Layers</a></li>
+      <li><a href="#threats">Threats</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#policies">Policies</a></li>
+      <li><a href="#install">Install</a></li>
+      <li>
+        <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="nav-gh">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </li>
+    </ul>
+    <button class="mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <img src="logo.png" alt="Fortress in a Box" class="hero-logo">
+    <h1>Enterprise-Grade Kubernetes Security for NGOs</h1>
+    <p>
+      The same security infrastructure used by Fortune 500 companies &mdash; free, open source,
+      and deployed in a single command. Built for journalists, activists, and human rights organizations.
+    </p>
+    <div class="hero-btns">
+      <a href="#install" class="btn btn-white">Get Started</a>
+      <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn btn-outline">View on GitHub</a>
+    </div>
+    <div class="hero-cmd">
+      <span class="dollar">$</span> git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git &amp;&amp; ./install.sh
+    </div>
+  </div>
+</section>
+
+<!-- 4 Features (Kubernetes style) -->
+<section class="features" id="layers">
+  <div class="container">
+    <div class="section-heading">
+      <h2>4 Layers of Protection</h2>
+      <p>Defense in depth &mdash; every layer catches what the previous one might miss.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">🔍</div>
+        <h3>CI/CD Scanning</h3>
+        <p>Every container image is scanned with Trivy for known CVEs. The pipeline fails before vulnerable code reaches your cluster.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🚧</div>
+        <h3>Admission Control</h3>
+        <p>Kyverno enforces 6 security policies at the API level. Insecure deployments are rejected before they ever start.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🛡</div>
+        <h3>Runtime Detection</h3>
+        <p>Falco monitors every running container. Shell access, privilege escalation, or suspicious behavior triggers instant alerts.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔄</div>
+        <h3>GitOps Recovery</h3>
+        <p>ArgoCD uses Git as the source of truth. Deleted policies or modified deployments are auto-restored within minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Incidents -->
+<section class="incidents" id="why">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Why This Exists</h2>
+      <p>NGOs get hacked constantly. This is not theoretical.</p>
+    </div>
+    <div class="incident-grid">
+      <div class="incident-card">
+        <span class="label">Breach &middot; 2022</span>
+        <h3>Red Cross</h3>
+        <p>515,000+ vulnerable people's data stolen. The "Restoring Family Links" program shut down. Real people couldn't find missing relatives.</p>
+      </div>
+      <div class="incident-card">
+        <span class="label">Breach &middot; 2022</span>
+        <h3>Amnesty International</h3>
+        <p>Breached by state-sponsored attackers. An organization that protects human rights was itself being surveilled.</p>
+      </div>
+      <div class="incident-card">
+        <span class="label">Ongoing</span>
+        <h3>Bellingcat</h3>
+        <p>The investigative group that exposed war crimes is constantly targeted by state actors trying to destroy evidence.</p>
+      </div>
+    </div>
+    <p class="incidents-note">
+      Small team, critical data, zero security budget. <strong>Fortress in a Box</strong> changes that.
+    </p>
+  </div>
+</section>
+
+<!-- Threats -->
+<section class="threats" id="threats">
+  <div class="container">
+    <div class="section-heading">
+      <h2>What It Protects You From</h2>
+    </div>
+    <table class="threat-table">
+      <thead>
+        <tr><th>Threat</th><th>How Fortress Stops It</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Attacker opens a shell in your container</td>
+          <td>Falco detects it in seconds and alerts on Discord</td>
+        </tr>
+        <tr>
+          <td>App deployed running as root</td>
+          <td>Kyverno blocks it before it reaches the cluster</td>
+        </tr>
+        <tr>
+          <td>Image with known vulnerabilities</td>
+          <td>Trivy scans in CI/CD &mdash; pipeline fails automatically</td>
+        </tr>
+        <tr>
+          <td>Security policies deleted</td>
+          <td>ArgoCD detects drift and restores from Git</td>
+        </tr>
+        <tr>
+          <td><code>:latest</code> image tag used</td>
+          <td>Kyverno blocks it &mdash; only pinned versions allowed</td>
+        </tr>
+        <tr>
+          <td>Container privilege escalation</td>
+          <td>Policies enforce non-root, non-privileged, read-only filesystem</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="architecture" id="architecture">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Architecture</h2>
+      <p>From code push to full protection &mdash; fully automated.</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-diagram"><span class="hl">GitHub Repository</span> <span class="dim">(Source of Truth)</span>
+       <span class="dim">│</span>
+       <span class="dim">▼</span>
+<span class="hl-dark">GitHub Actions CI/CD</span>
+  <span class="dim">├──</span> docker build
+  <span class="dim">├──</span> <span class="hl-red">trivy scan</span> ──── FAIL if CVEs found
+  <span class="dim">├──</span> docker push to GHCR
+  <span class="dim">└──</span> update deployment image tag
+       <span class="dim">│</span>
+       <span class="dim">▼</span>
+<span class="hl">ArgoCD</span> <span class="dim">(watches repo every 3 min)</span>
+  <span class="dim">└──</span> kubectl apply <span class="dim">(automatic)</span>
+       <span class="dim">│</span>
+       <span class="dim">▼</span>
+<span class="hl-green">Kubernetes Cluster</span>
+  <span class="dim">├──</span> <span class="hl-green">Kyverno</span> ──── blocks bad deployments
+  <span class="dim">├──</span> <span class="hl">Falco</span> ───── detects runtime threats
+  <span class="dim">│     └──</span> Falcosidekick
+  <span class="dim">│           ├──</span> Discord alerts
+  <span class="dim">│           └──</span> Loki <span class="dim">(log storage)</span>
+  <span class="dim">└──</span> <span class="hl-dark">Grafana</span> ─── security dashboard</div>
+    </div>
+  </div>
+</section>
+
+<!-- Policies -->
+<section class="policies" id="policies">
+  <div class="container">
+    <div class="section-heading">
+      <h2>6 Security Policies</h2>
+      <p>Enforced by Kyverno at the cluster level. No insecure deployment gets through.</p>
+    </div>
+    <div class="policies-grid">
+      <div class="policy-card">
+        <h4>disallow-root-user</h4>
+        <p>Blocks containers running as root &mdash; prevents container escape via root privileges.</p>
+      </div>
+      <div class="policy-card">
+        <h4>disallow-privileged</h4>
+        <p>Prevents host kernel access &mdash; blocks full host takeover.</p>
+      </div>
+      <div class="policy-card">
+        <h4>disallow-latest-tag</h4>
+        <p>Blocks mutable <code>:latest</code> tags &mdash; prevents supply chain attacks.</p>
+      </div>
+      <div class="policy-card">
+        <h4>require-resource-limits</h4>
+        <p>Enforces CPU and memory limits &mdash; stops denial of service.</p>
+      </div>
+      <div class="policy-card">
+        <h4>require-readonly-rootfs</h4>
+        <p>Forces read-only root filesystem &mdash; prevents malware installation.</p>
+      </div>
+      <div class="policy-card">
+        <h4>disallow-host-network</h4>
+        <p>Prevents direct host network access &mdash; stops traffic sniffing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section class="install" id="install">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Install in 5 Minutes</h2>
+      <p>One command. Full cluster protection.</p>
+    </div>
+    <div class="install-layout">
+      <ul class="install-steps">
+        <li>
+          <strong>Prerequisites</strong>
+          <span>A Kubernetes cluster, <code>kubectl</code>, and <code>helm</code> v3+ installed.</span>
+        </li>
+        <li>
+          <strong>Clone &amp; Run</strong>
+          <span>Clone the repo and run the interactive installer script.</span>
+        </li>
+        <li>
+          <strong>Configure</strong>
+          <span>Enter your GitHub repo URL, Discord webhook (optional), and Grafana password.</span>
+        </li>
+        <li>
+          <strong>Done</strong>
+          <span>Fortress is active. 4 layers of security are now protecting your cluster.</span>
+        </li>
+      </ul>
+      <div class="install-code"><span class="cmt"># Clone the repository</span>
+<span class="ps">$</span> git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git
+<span class="ps">$</span> cd fortress-in-a-box
+
+<span class="cmt"># Run the installer</span>
+<span class="ps">$</span> chmod +x install.sh
+<span class="ps">$</span> ./install.sh
+
+<span class="cmt"># Fortress is now active.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Dashboards -->
+<section class="dashboards">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Your Security Dashboards</h2>
+      <p>Three web interfaces to monitor and manage your cluster.</p>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <h3>Grafana</h3>
+        <div class="port">localhost:3000</div>
+        <p>Security dashboard with Falco event visualization and log aggregation via Loki.</p>
+        <code>kubectl port-forward svc/grafana -n monitoring 3000:80</code>
+      </div>
+      <div class="dash-card">
+        <h3>ArgoCD</h3>
+        <div class="port">localhost:8080</div>
+        <p>GitOps control plane. Sync status, app health, and drift correction.</p>
+        <code>kubectl port-forward svc/argocd-server -n argocd 8080:443</code>
+      </div>
+      <div class="dash-card">
+        <h3>Falcosidekick UI</h3>
+        <div class="port">localhost:2802</div>
+        <p>Real-time alert viewer for runtime security events across all containers.</p>
+        <code>kubectl port-forward svc/falco-falcosidekick-ui -n falco 2802:2802</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Built for the people who protect others.</h2>
+  <p>Free, open source, and ready to deploy. Protect your organization today.</p>
+  <div>
+    <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn btn-white">Get Started on GitHub</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <p>&copy; 2026 Fortress in a Box &middot; MIT License &middot; Built by <a href="https://github.com/JoseLorenzana272" target="_blank" rel="noopener">Jose Lorenzana</a></p>
+    <div class="footer-links">
+      <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/jose-lorenzana-medina/" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
