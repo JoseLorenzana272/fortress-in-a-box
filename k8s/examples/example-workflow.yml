@@ -42,6 +42,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # -------------------------------------------------------
+      # If you have ONE image, keep this as is.
+      # If you have MULTIPLE images, repeat the Build, Scan,
+      # and Push steps for each one. Example:
+      #
+      #   IMAGE_API = ghcr.io/your-org/your-api
+      #   IMAGE_WORKER = ghcr.io/your-org/your-worker
+      #   IMAGE_FRONTEND = ghcr.io/your-org/your-frontend
+      #
+      # Add one set of Build + Scan + Push steps per image.
+      # EVERY image MUST be scanned before pushing.
+      # -------------------------------------------------------
       - name: Build Docker image
         run: |
           docker build \
