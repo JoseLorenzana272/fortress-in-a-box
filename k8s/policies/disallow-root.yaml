@@ -11,6 +11,9 @@ spec:
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE"]
         resources: ["pods"]
+  matchConditions:
+    - name: exclude-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
   validations:
     - message: "FORTRESS SECURITY: Running as root is not allowed!"
       expression: >

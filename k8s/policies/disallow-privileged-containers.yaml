@@ -1,0 +1,24 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-privileged-containers
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  validations:
+    - message: "FORTRESS SECURITY: Privileged containers are not allowed!"
+      expression: >
+        object.spec.containers.all(c,
+          !has(c.securityContext) ||
+          !has(c.securityContext.privileged) ||
+          c.securityContext.privileged == false
+        )

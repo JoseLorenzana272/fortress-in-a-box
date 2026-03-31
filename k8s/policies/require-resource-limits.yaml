@@ -1,0 +1,25 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: require-resource-limits
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  validations:
+    - message: "FORTRESS SECURITY: Resource limits (CPU and memory) are required!"
+      expression: >
+        object.spec.containers.all(c,
+          has(c.resources) &&
+          has(c.resources.limits) &&
+          has(c.resources.limits.cpu) &&
+          has(c.resources.limits.memory)
+        )

@@ -1,17 +1,32 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: fortress-app-secure
+  name: fortress-app
+  namespace: default
+  labels:
+    app: fortress-app
 spec:
-  # we're not root in POD LEVEL
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 101
-  containers:
-    - name: secure-nginx
-      image: ghcr.io/joselorenzana272/fortress-in-a-box:latest
-      imagePullPolicy: Always
-      # we're not root in CONTAINER LEVEL
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fortress-app
+  template:
+    metadata:
+      labels:
+        app: fortress-app
+    spec:
+      # Pod level - not root
       securityContext:
         runAsNonRoot: true
-        allowPrivilegeEscalation: false
+        runAsUser: 101
+      containers:
+        - name: secure-nginx
+          image: ghcr.io/joselorenzana272/fortress-in-a-box:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          # Container level - not root
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            allowPrivilegeEscalation: false

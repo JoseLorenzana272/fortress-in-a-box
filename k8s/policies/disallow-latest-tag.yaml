@@ -1,0 +1,23 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  validations:
+    - message: "FORTRESS SECURITY: Using 'latest' image tag is not allowed. Pin your image to a specific version!"
+      expression: >
+        object.spec.containers.all(c,
+          !c.image.endsWith(':latest') &&
+          c.image.contains(':')
+        )

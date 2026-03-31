@@ -1,0 +1,21 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-host-network
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  validations:
+    - message: "FORTRESS SECURITY: Host network access is not allowed!"
+      expression: >
+        !has(object.spec.hostNetwork) ||
+        object.spec.hostNetwork == false

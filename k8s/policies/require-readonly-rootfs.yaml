@@ -1,0 +1,24 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: require-readonly-rootfs
+spec:
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  validations:
+    - message: "FORTRESS SECURITY: Root filesystem must be read-only!"
+      expression: >
+        object.spec.containers.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.readOnlyRootFilesystem) &&
+          c.securityContext.readOnlyRootFilesystem == true
+        )
