@@ -9,6 +9,8 @@ spec:
     repoURL: https://github.com/JoseLorenzana272/fortress-in-a-box
     targetRevision: HEAD
     path: k8s
+    directory:
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: default
