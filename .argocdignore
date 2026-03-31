@@ -1,0 +1,2 @@
+k8s/grafana/fortress-dashboard.json
+k8s/grafana/datasource-loki.yaml
