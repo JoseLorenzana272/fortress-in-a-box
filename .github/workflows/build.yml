@@ -48,8 +48,11 @@ jobs:
         run: |
           sed -i "s|image: .*|image: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             k8s/examples/secure-deployment-example.yaml
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add k8s/examples/secure-deployment-example.yaml
-          git commit -m "ci: update image tag to ${{ github.sha }}" || true
-          git push
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "ci: update image tag to ${{ github.sha }}"
+          branch: ci/update-image
+          title: "ci: update image tag"
+          body: "Automated update of image tag"
