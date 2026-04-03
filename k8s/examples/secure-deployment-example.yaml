@@ -44,7 +44,7 @@ spec:
           # This tag is automatically updated by the CI/CD pipeline on every push.
           # Never change this manually — let the pipeline handle it.
           # Format: ghcr.io/<your-org>/<your-repo>:<git-sha>
-          image: ghcr.io/ghcr.io/joselorenzana272/fortress-in-a-box:8669723b004b73a2d249e89af27a67f3f3284d47
+          image: ghcr.io/ghcr.io/joselorenzana272/fortress-in-a-box:ed4e7df8d9c81c8edbb7a9a44272c43ab41c4534
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
