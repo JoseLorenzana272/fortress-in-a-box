@@ -105,10 +105,34 @@ install_kyverno() {
 install_falco() {
     print_step "Installing Falco (runtime threat detection)..."
 
+    # Create custom tuning rules to elevate serious threats and silence noise
+    cat <<EOF > falco-rules.yaml
+customRules:
+  fortress-tuning.yaml: |-
+    # Overwrite the default rule to elevate it to CRITICAL
+    - rule: Terminal shell in container
+      desc: A shell was used as the entrypoint/exec point of a container with an attached terminal.
+      condition: >
+        spawned_process and container
+        and shell_procs and proc.tty != 0
+        and container_entrypoint
+        and not user_expected_terminal_shell_in_container_conditions
+      output: >
+        CRITICAL ALERT: Interactive shell spawned in container! (user=%user.name pod=%k8s.pod.name container=%container.name command=%proc.cmdline)
+      priority: CRITICAL
+      tags: [container, shell, mitre_execution]
+    
+    # Silence expected K8s API connections from platform tools (Loki, Grafana, ArgoCD)
+    - macro: user_known_contact_k8s_api_server_activities
+      append: true
+      condition: or (k8s.ns.name in (argocd, monitoring))
+EOF
+
     if [ -n "$DISCORD_WEBHOOK" ]; then
         helm upgrade --install falco falcosecurity/falco \
         --namespace falco \
         --create-namespace \
+        -f falco-rules.yaml \
         --set driver.kind=modern_ebpf \
         --set tty=true \
         --set falcosidekick.enabled=true \
@@ -116,7 +140,7 @@ install_falco() {
         --set falcosidekick.replicaCount=1 \
         --set falcosidekick.webui.replicaCount=1 \
         --set falcosidekick.config.discord.webhookurl="$DISCORD_WEBHOOK" \
-        --set falcosidekick.config.discord.minimumpriority="critical" \
+        --set falcosidekick.config.discord.minimumpriority="warning" \
         --set falcosidekick.config.loki.hostport="http://loki-gateway.monitoring.svc.cluster.local:80" \
         --set falcosidekick.config.loki.minimumpriority="notice" \
         --wait
@@ -124,6 +148,7 @@ install_falco() {
         helm upgrade --install falco falcosecurity/falco \
         --namespace falco \
         --create-namespace \
+        -f falco-rules.yaml \
         --set driver.kind=modern_ebpf \
         --set tty=true \
         --set falcosidekick.enabled=true \
@@ -134,6 +159,8 @@ install_falco() {
         --set falcosidekick.config.loki.minimumpriority="notice" \
         --wait
     fi
+
+    rm -f falco-rules.yaml
 
     print_success "Falco installed. Runtime monitoring active."
 }
@@ -201,9 +228,11 @@ install_argocd() {
         --wait
 
     print_step "Configuring ArgoCD applications..."
+    
     # Apply fortress to ArgoCD
     kubectl apply -f k8s/argocd/fortress-app.yaml
-    # Replace repo URL in the ArgoCD application manifest
+    
+    # Apply user-app injecting the repository in memory without modifying the file
     sed "s|REPLACE_ME|$GITHUB_REPO|g" \
         k8s/argocd/user-app.yaml | kubectl apply -f -
 
