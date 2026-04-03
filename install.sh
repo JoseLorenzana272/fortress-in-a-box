@@ -122,6 +122,22 @@ customRules:
       priority: CRITICAL
       tags: [container, shell, mitre_execution]
     
+    # Detect reading /etc/passwd
+    - rule: Fortress Read Passwd File
+      desc: Detect an attempt to read /etc/passwd interactively
+      condition: open_read and container and fd.name = '/etc/passwd' and proc.name in (cat, tail, head, more, less, vi, nano)
+      output: "WARNING ALERT: /etc/passwd was read in a container! (user=%user.name pod=%k8s.pod.name command=%proc.cmdline)"
+      priority: WARNING
+      tags: [container, filesystem, mitre_credential_access]
+
+    # Detect grep searching for passwords
+    - rule: Fortress Grep Passwords
+      desc: Detect grep searching for the word password
+      condition: spawned_process and container and proc.name = "grep" and proc.args icontains "password"
+      output: "WARNING ALERT: Suspicious grep search for 'password' in container! (user=%user.name pod=%k8s.pod.name command=%proc.cmdline)"
+      priority: WARNING
+      tags: [container, mitre_credential_access]
+
     # Silence expected K8s API connections from platform tools (Loki, Grafana, ArgoCD)
     - macro: user_known_contact_k8s_api_server_activities
       append: true
