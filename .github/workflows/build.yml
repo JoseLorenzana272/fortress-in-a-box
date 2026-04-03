@@ -56,3 +56,5 @@ jobs:
           branch: ci/update-image
           title: "ci: update image tag"
           body: "Automated update of image tag"
+          add-paths: |
+            k8s/examples/secure-deployment-example.yaml
