@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: user-workloads
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: REPLACE_ME
+    targetRevision: HEAD
+    path: k8s
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

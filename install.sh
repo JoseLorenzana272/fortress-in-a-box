@@ -200,10 +200,12 @@ install_argocd() {
         --create-namespace \
         --wait
 
-    print_step "Connecting ArgoCD to your repository..."
+    print_step "Configuring ArgoCD applications..."
+    # Apply fortress to ArgoCD
+    kubectl apply -f k8s/argocd/fortress-app.yaml
     # Replace repo URL in the ArgoCD application manifest
-    sed "s|https://github.com/JoseLorenzana272/fortress-in-a-box|$GITHUB_REPO|g" \
-        k8s/argocd/fortress-app.yaml | kubectl apply -f -
+    sed "s|REPLACE_ME|$GITHUB_REPO|g" \
+        k8s/argocd/user-app.yaml | kubectl apply -f -
 
     print_success "ArgoCD installed. GitOps active."
 }
