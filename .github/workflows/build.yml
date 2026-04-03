@@ -10,7 +10,6 @@ jobs:
     permissions:
       contents: write
       packages: write
-      pull-requests: write
 
     steps:
       - name: Check out the repository
