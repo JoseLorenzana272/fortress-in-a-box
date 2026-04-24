@@ -233,6 +233,21 @@ install_monitoring() {
 }
 
 # ============================================================
+# SCAFFOLD TRIVY (LAYER 1)
+# ============================================================
+scaffold_trivy() {
+    print_step "Scaffolding Layer 1 (CI/CD Vulnerability Scanning)..."
+    
+    mkdir -p .github/workflows
+    cp k8s/examples/example-workflow.yml .github/workflows/trivy-security.yml
+    
+    echo -e "  ${YELLOW}➔ Created .github/workflows/trivy-security.yml${NC}"
+    echo -e "  ${YELLOW}➔ To enable Layer 1, commit this file to your repository and customize your deployment paths.${NC}"
+    
+    print_success "Trivy workflow scaffolded."
+}
+
+# ============================================================
 # INSTALL ARGOCD
 # ============================================================
 install_argocd() {
@@ -291,4 +306,5 @@ install_kyverno
 install_monitoring
 install_falco
 install_argocd
+scaffold_trivy
 print_summary
