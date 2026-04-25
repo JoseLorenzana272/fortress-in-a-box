@@ -8,7 +8,7 @@
 ![Kubernetes](https://img.shields.io/badge/kubernetes-ready-blue)
 ![Made with](https://img.shields.io/badge/made%20with-❤️%20for%20NGOs-red)
 
-<img width="1280" height="720" alt="fortress-logo" src="https://github.com/user-attachments/assets/b399b965-9f2b-43fb-9b2c-182e6c9d7d63" />
+<img width="1920" height="1080" alt="FORTRESS-logo" src="https://github.com/user-attachments/assets/7aef3e3a-c75a-4869-812a-1d45cf0bdbe6" />
 
 ## Who This Is For
 
