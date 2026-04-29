@@ -62,6 +62,10 @@ collect_input() {
     echo -e "Enter your Discord webhook URL (or press Enter to skip):"
     read -r DISCORD_WEBHOOK
 
+    echo -e "Enter the local path to your application repository (or press Enter to skip):"
+    echo -e "(e.g., ../my-app-repo)"
+    read -r APP_LOCAL_PATH
+
     echo -e "Enter your Grafana admin password (default: fortress-admin):"
     read -r GRAFANA_PASSWORD
     GRAFANA_PASSWORD=${GRAFANA_PASSWORD:-fortress-admin}
@@ -238,11 +242,10 @@ install_monitoring() {
 scaffold_trivy() {
     print_step "Scaffolding Layer 1 (CI/CD Vulnerability Scanning)..."
     
-    mkdir -p .github/workflows
-    cp k8s/examples/example-workflow.yml .github/workflows/trivy-security.yml
+    cp k8s/examples/example-workflow.yml ./trivy-security.yml
     
-    echo -e "  ${YELLOW}➔ Created .github/workflows/trivy-security.yml${NC}"
-    echo -e "  ${YELLOW}➔ To enable Layer 1, commit this file to your repository and customize your deployment paths.${NC}"
+    echo -e "  ${YELLOW}➔ Created trivy-security.yml in your current directory.${NC}"
+    echo -e "  ${YELLOW}➔ To enable Layer 1, move this file to YOUR application's repository (under the .github/workflows/ folder) and commit it.${NC}"
     
     print_success "Trivy workflow scaffolded."
 }
@@ -268,6 +271,26 @@ install_argocd() {
         k8s/argocd/user-app.yaml | kubectl apply -f -
 
     print_success "ArgoCD installed. GitOps active."
+}
+
+# ============================================================
+# SCAFFOLD TRIVY (LAYER 1)
+# ============================================================
+scaffold_trivy() {
+    print_step "Scaffolding Layer 1 (CI/CD Vulnerability Scanning)..."
+    
+    if [ -n "$APP_LOCAL_PATH" ] && [ -d "$APP_LOCAL_PATH" ]; then
+        mkdir -p "$APP_LOCAL_PATH/.github/workflows"
+        cp k8s/examples/example-workflow.yml "$APP_LOCAL_PATH/.github/workflows/trivy-security.yml"
+        echo -e "  ${YELLOW}➔ Injected trivy-security.yml directly into $APP_LOCAL_PATH/.github/workflows/${NC}"
+        echo -e "  ${YELLOW}➔ Customize your deployment paths inside that file, then commit and push it.${NC}"
+    else
+        cp k8s/examples/example-workflow.yml ./trivy-security.yml
+        echo -e "  ${YELLOW}➔ Created trivy-security.yml in your current directory.${NC}"
+        echo -e "  ${YELLOW}➔ To enable Layer 1, move this file to YOUR application's repository (under .github/workflows/) and commit it.${NC}"
+    fi
+
+    print_success "Trivy workflow scaffolded."
 }
 
 # ============================================================
