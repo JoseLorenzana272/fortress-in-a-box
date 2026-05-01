@@ -103,7 +103,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum by (rule) (count_over_time({source=\"syscall\"}[24h]))",
+          "expr": "sum by (rule) (count_over_time({source=\"syscall\"}[$__range]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -186,7 +186,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum(count_over_time({priority=\"Critical\"}[1h])) or vector(0)",
+          "expr": "sum(count_over_time({priority=~\"Critical|Warning|Error\"}[$__range])) or vector(0)",
           "queryType": "range",
           "refId": "A"
         }
