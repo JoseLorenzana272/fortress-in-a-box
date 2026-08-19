@@ -25,728 +25,943 @@
   <link rel="icon" type="image/png" href="fortess-turtle.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0 !important; }
 
-    :root {
-      --bg: #09090b;
-      --surface: #111113;
-      --surface-2: #18181b;
-      --border: #27272a;
-      --border-hover: #3f3f46;
-      --text: #f4f4f5;
-      --text-2: #a1a1aa;
-      --text-3: #71717a;
-      --accent: #3b82f6;
-      --accent-bright: #2563eb;
-      --accent-dim: rgba(59, 130, 246, 0.1);
-      --accent-dim-2: rgba(59, 130, 246, 0.05);
-      --red-text: #ef4444;
-      --green-text: #10b981;
-      --mono: 'DM Mono', monospace;
-      --sans: 'Geist', system-ui, sans-serif;
+    ::selection {
+      background: var(--accent);
+      color: #000;
     }
 
-    html { scroll-behavior: smooth; }
+    :root {
+      --bg: #050505;
+      --surface: #0d0d0d;
+      --surface-hover: #141414;
+      --border: #222222;
+      --border-bright: #444444;
+      --text: #ffffff;
+      --text-muted: #8c8c8c;
+      --text-dark: #555555;
+      --accent: #6bb6ff;
+      --accent-dim: rgba(107, 182, 255, 0.16);
+      --green: #00ff66;
+      --red: #ff3333;
+      --sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      --mono: 'Space Mono', monospace;
+    }
+
     body {
       font-family: var(--sans);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); }
 
     /* NAV */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 100;
-      padding: 0 2rem;
-      height: 56px;
+      padding: 0 2.5rem;
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
-      background: rgba(7,12,24,0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: var(--bg);
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 0.6rem;
-      font-size: 0.92rem; font-weight: 600;
+      display: flex; align-items: center; gap: 0.8rem;
+      font-family: var(--mono);
+      font-size: 0.85rem; font-weight: 700;
       color: var(--text); text-decoration: none;
-      transition: opacity 0.15s;
+      letter-spacing: -0.02em;
     }
-    .nav-logo:hover { opacity: 0.8; text-decoration: none; }
-    .nav-logo img { height: 26px; width: auto; }
+    .nav-logo img { height: 22px; width: auto; filter: grayscale(1) brightness(1.5); }
 
     .nav-links {
       display: flex; align-items: center;
-      gap: 0.2rem; list-style: none;
+      gap: 1.5rem; list-style: none;
     }
     .nav-links a {
-      font-size: 0.82rem; color: var(--text-2);
-      text-decoration: none; padding: 0.35rem 0.75rem;
-      border-radius: 4px; transition: color 0.15s;
+      font-family: var(--mono);
+      font-size: 0.75rem; color: var(--text-muted);
+      text-decoration: none; transition: color 0.1s;
     }
-    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover { color: var(--accent); }
 
     .nav-gh {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-size: 0.8rem; font-weight: 500;
-      color: var(--text) !important;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 6px; padding: 0.3rem 0.75rem;
-      transition: border-color 0.15s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+      color: #000 !important;
+      background: var(--text);
+      padding: 0.4rem 0.8rem;
+      text-decoration: none;
+      transition: background 0.1s;
     }
-    .nav-gh:hover { border-color: var(--border-hover); }
+    .nav-gh:hover { background: var(--accent); }
 
     /* HERO */
     .hero {
-      position: relative; z-index: 1;
-      min-height: 100svh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center; padding: 8rem 2rem 6rem;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: stretch;
+      border-bottom: 1px solid var(--border);
+      padding-top: 64px;
+    }
+
+    .hero-left {
+      padding: 5rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-right {
+      background: transparent;
+      padding: 2.5rem 3.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
     }
 
     .hero-logo {
-      height: 400px; width: auto;
-      margin-bottom: 0rem;
+      max-width: 660px; height: auto;
+      filter: none;
+      opacity: 1;
+      margin: 0;
+      display: block;
+      transform: translateY(-8px);
+      background: transparent;
     }
 
     .hero-badge {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-family: var(--mono); font-size: 0.68rem;
-      color: var(--accent); background: var(--accent-dim-2);
-      border: 1px solid rgba(50,108,229,0.2);
-      border-radius: 100px; padding: 0.28rem 0.85rem;
-      margin-bottom: 2rem; letter-spacing: 0.07em;
-      text-transform: uppercase;
+      display: inline-flex; align-items: center;
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1.5rem; letter-spacing: 0.05em;
     }
-    .hero-badge::before { content: '●'; font-size: 0.45rem; }
 
     h1 {
-      font-size: clamp(2.8rem, 6vw, 4.5rem);
-      font-weight: 600; line-height: 1.1; color: #fff;
-      max-width: 800px; margin-bottom: 1.5rem;
-      letter-spacing: -0.03em;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 700; line-height: 1.05; color: var(--text);
+      margin-bottom: 2rem; letter-spacing: -0.04em;
+      text-transform: uppercase;
     }
 
     .hero-sub {
-      font-size: 1rem; color: var(--text-2);
-      max-width: 460px; line-height: 1.75;
-      margin-bottom: 2.75rem; font-weight: 300;
+      font-size: 1.05rem; color: var(--text-muted);
+      max-width: 540px; line-height: 1.6;
+      margin-bottom: 3rem; font-weight: 400;
     }
 
     .hero-actions {
-      display: flex; gap: 0.75rem; align-items: center;
-      flex-wrap: wrap; justify-content: center;
-      margin-bottom: 3.5rem;
+      display: flex; gap: 1rem; align-items: center;
+      flex-wrap: wrap; margin-bottom: 3rem;
     }
 
     .btn-primary {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: var(--accent-bright); color: #fff;
-      font-size: 0.88rem; font-weight: 600;
-      padding: 0.65rem 1.4rem; border-radius: 7px;
-      text-decoration: none;
-      transition: opacity 0.15s, transform 0.1s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--accent); color: #04111f;
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 700;
+      padding: 0.9rem 1.8rem; text-decoration: none;
+      text-transform: uppercase; border: 1px solid var(--accent);
+      transition: background 0.15s, color 0.15s;
     }
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:hover { background: transparent; color: var(--accent); }
 
     .btn-ghost {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      color: var(--text-2); font-size: 0.88rem;
-      padding: 0.65rem 1.2rem; border-radius: 7px;
-      text-decoration: none; border: 1px solid var(--border);
-      transition: color 0.15s, border-color 0.15s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--text); font-family: var(--mono); font-size: 0.8rem;
+      padding: 0.9rem 1.8rem; text-decoration: none;
+      border: 1px solid var(--border-bright); text-transform: uppercase;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .btn-ghost:hover { color: var(--text); border-color: var(--border-hover); }
+    .btn-ghost:hover { border-color: var(--accent); background: rgba(107,182,255,0.08); }
 
     .install-box {
-      display: inline-flex; align-items: center; gap: 1rem;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0.65rem 1.1rem 0.65rem 1.25rem;
-      font-family: var(--mono); font-size: 0.78rem; color: var(--text-2);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border-bright);
+      padding: 0.9rem 1.2rem; width: 100%; max-width: 540px;
+      font-family: var(--mono); font-size: 0.75rem;
     }
-    .install-box .dollar { color: var(--text-3); }
     .install-box .cmd { color: var(--text); }
+    .install-box .dollar { color: var(--accent); font-weight: 700; }
 
     .copy-btn {
       display: inline-flex; align-items: center; gap: 0.3rem;
-      font-family: var(--mono); font-size: 0.68rem;
-      color: var(--text-3); background: none;
-      border: 1px solid var(--border); border-radius: 4px;
-      padding: 0.2rem 0.5rem; cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
+      font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase;
+      color: var(--text); background: var(--bg);
+      border: 1px solid var(--border-bright);
+      padding: 0.3rem 0.6rem; cursor: pointer;
+      transition: border-color 0.1s, color 0.1s;
     }
-    .copy-btn:hover { color: var(--text-2); border-color: var(--border-hover); }
-    .copy-btn.copied { color: var(--green-text); border-color: rgba(110,231,183,0.3); }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
-    /* SECTIONS */
+    .utility-bar {
+      position: fixed;
+      right: 1rem;
+      top: 5.5rem;
+      z-index: 110;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(10, 10, 10, 0.7);
+      border: 1px solid var(--border-bright);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0.35rem;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .utility-bar.hidden {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+    }
+
+    .utility-btn {
+      appearance: none;
+      border: 1px solid var(--border-bright);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.62rem 0.8rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.15s, transform 0.15s, background 0.15s;
+    }
+    .utility-btn:hover {
+      border-color: var(--accent);
+      background: rgba(107, 182, 255, 0.08);
+      transform: translateY(-1px);
+    }
+    .utility-btn.primary {
+      background: var(--accent);
+      color: #04111f;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* GLOBAL SECTION ELEMENTS */
     section {
-      position: relative; z-index: 1;
-      padding: 7rem 2rem;
-      max-width: 1100px; margin: 0 auto;
+      padding: 6rem 3.5rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    .section-label {
-      font-family: var(--mono); font-size: 0.67rem;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 1.25rem;
-      display: flex; align-items: center; gap: 0.5rem;
+    .section-header {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 3.5rem;
+      margin-bottom: 4rem;
     }
-    .section-label::before {
-      content: ''; display: inline-block;
-      width: 20px; height: 1px;
-      background: var(--accent); opacity: 0.5;
+
+    .section-meta {
+      font-family: var(--mono); font-size: 0.75rem;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 1rem; display: block;
     }
 
     h2 {
-      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
-      font-weight: 600; line-height: 1.15;
-      color: #fff; margin-bottom: 1rem;
-      letter-spacing: -0.02em;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700; line-height: 1.1;
+      color: var(--text); text-transform: uppercase;
+      letter-spacing: -0.03em;
     }
 
     .section-desc {
-      font-size: 0.97rem; color: var(--text-2);
-      max-width: 440px; line-height: 1.7; font-weight: 300;
+      font-size: 1rem; color: var(--text-muted);
+      line-height: 1.6; max-width: 480px;
     }
 
-    .divider {
-      border: none; border-top: 1px solid var(--border);
-      max-width: 1100px; margin: 0 auto;
+    /* WHY SECTION - INTEL DOSSIER STYLE */
+    .why-layout {
+      display: grid; grid-template-columns: 1.2fr 1fr;
+      gap: 5rem;
     }
 
-    /* WHY */
-    .why-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 4rem; align-items: start; margin-top: 3.5rem;
+    .intel-feed {
+      border-top: 1px solid var(--border-bright);
     }
 
     .incident {
-      padding: 1.4rem 0; border-bottom: 1px solid var(--border);
+      padding: 2rem 0; border-bottom: 1px solid var(--border);
     }
-    .incident:first-child { border-top: 1px solid var(--border); }
 
-    .incident-tag {
-      font-family: var(--mono); font-size: 0.65rem;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--red-text); margin-bottom: 0.45rem; opacity: 0.85;
+    .incident-meta {
+      display: flex; justify-content: space-between;
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--red); margin-bottom: 0.5rem;
+      text-transform: uppercase;
     }
+
     .incident h3 {
-      font-size: 0.95rem; font-weight: 500;
-      color: var(--text); margin-bottom: 0.35rem;
+      font-size: 1.2rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.5rem;
+      text-transform: uppercase;
     }
     .incident p {
-      font-size: 0.85rem; color: var(--text-2);
-      line-height: 1.6; font-weight: 300;
+      font-size: 0.88rem; color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .why-sidebar {
+      background: var(--surface);
+      border: 1px dashed var(--border-bright);
+      padding: 3rem;
+      display: flex; flex-direction: column; justify-content: space-between;
     }
 
     .why-stat {
-      color: var(--accent); line-height: 1; margin-bottom: 0.5rem;
+      font-family: var(--mono);
+      color: var(--accent); font-size: 5rem; line-height: 1; font-weight: 700;
+      margin-bottom: 1rem;
     }
+
     .why-context {
-      font-size: 0.88rem; color: var(--text-2); line-height: 1.7;
-      max-width: 320px; font-weight: 300; margin-bottom: 2rem;
+      font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;
+      margin-bottom: 3rem;
     }
+
     .why-callout {
-      font-style: italic; color: var(--text);
-      border-left: 2px solid var(--accent-bright);
-      padding-left: 1.2rem; line-height: 1.55; opacity: 0.8;
+      font-family: var(--mono);
+      font-size: 0.85rem; color: var(--text);
+      border-left: 2px solid var(--accent);
+      padding-left: 1.5rem; line-height: 1.5;
     }
 
-    /* LAYERS */
-    .layers-grid {
-      margin-top: 3.5rem;
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
-    }
-    .layer {
-      padding: 2rem 1.5rem;
-      border-right: 1px solid var(--border);
-      transition: background 0.2s;
-    }
-    .layer:last-child { border-right: none; }
-    .layer:hover { background: var(--surface); }
-
-    .layer-num {
-      font-family: var(--mono); font-size: 0.63rem;
-      letter-spacing: 0.1em; color: var(--text-3);
-      text-transform: uppercase; margin-bottom: 1.2rem;
-    }
-    .layer-icon {
-      width: 34px; height: 34px; margin-bottom: 0.9rem;
-      color: var(--accent); opacity: 0.9; display: block;
-    }
-    .layer h3 { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
-    .layer p { font-size: 0.81rem; color: var(--text-2); line-height: 1.6; font-weight: 300; }
-    .layer-tool {
-      display: inline-block; font-family: var(--mono); font-size: 0.65rem;
-      color: var(--accent); background: var(--accent-dim-2);
-      border: 1px solid rgba(50,108,229,0.18);
-      border-radius: 3px; padding: 0.1rem 0.4rem; margin-top: 0.75rem;
+    /* ARCHITECTURE (VERTICAL SECURITY STACK) */
+    .stack-container {
+      margin-top: 2rem;
     }
 
-    /* THREATS */
-    .threats-table {
-      margin-top: 3rem; border: 1px solid var(--border);
-      border-radius: 10px; overflow: hidden;
+    .stack-layer {
+      display: grid;
+      grid-template-columns: 100px 1.5fr 3fr 1.2fr;
+      align-items: center;
+      padding: 2.5rem 1.5rem;
+      border-bottom: 1px solid var(--border-bright);
+      transition: background 0.1s;
     }
+    .stack-layer:first-child { border-top: 1px solid var(--border-bright); }
+    .stack-layer:hover { background: var(--surface); }
+
+    .stack-num {
+      font-family: var(--mono); font-size: 0.8rem; color: var(--text-dark);
+    }
+    .stack-layer:hover .stack-num { color: var(--accent); }
+
+    .stack-title {
+      font-size: 1.2rem; font-weight: 700; text-transform: uppercase;
+    }
+
+    .stack-desc {
+      font-size: 0.9rem; color: var(--text-muted); padding-right: 2rem;
+    }
+
+    .stack-tag {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--accent); background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      padding: 0.3rem 0.6rem; text-align: center;
+      width: fit-content; text-transform: uppercase;
+    }
+
+    /* THREAT COVERAGE (SYSTEM STATUS LOG) */
+    .threat-terminal {
+      border: 1px solid var(--border-bright);
+      background: var(--surface);
+    }
+
+    .terminal-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-bright);
+      padding: 0.8rem 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .terminal-title {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .terminal-dot {
+      width: 6px; height: 6px; background: var(--accent);
+    }
+
     .threat-row {
-      display: grid; grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--border); transition: background 0.15s;
+      display: grid; grid-template-columns: 1.2fr 1fr;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.8rem;
     }
     .threat-row:last-child { border-bottom: none; }
-    .threat-row:hover { background: var(--surface); }
-    .threat-row.header { background: var(--surface); }
-    .threat-row.header .tc {
-      font-family: var(--mono); font-size: 0.65rem;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text-3); padding: 0.9rem 1.5rem;
-    }
-    .tc {
-      padding: 1.05rem 1.5rem; font-size: 0.86rem;
-      display: flex; align-items: center; gap: 0.6rem;
-    }
-    .tc:first-child {
-      color: var(--text-2); border-right: 1px solid var(--border); font-weight: 300;
-    }
-    .tc:last-child { color: var(--green-text); font-size: 0.83rem; }
-    .tc:last-child::before { content: '✓'; font-size: 0.72rem; opacity: 0.7; flex-shrink: 0; }
+    .threat-row:hover { background: var(--bg); }
 
-    /* ARCH */
-    .arch-wrapper {
-      margin-top: 3rem; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 10px;
-      padding: 2rem 2.5rem; overflow-x: auto;
+    .threat-col { padding: 1.2rem 1.5rem; display: flex; align-items: center; }
+    .threat-col:first-child {
+      color: var(--text);
+      border-right: 1px solid var(--border-bright);
     }
-    .arch-code {
-      font-family: var(--mono); font-size: 0.79rem;
-      line-height: 2; color: var(--text-3); white-space: pre;
+    .threat-col:last-child {
+      color: var(--green);
     }
-    .arch-code .node { color: var(--text); font-weight: 500; }
-    .arch-code .blue { color: var(--accent); }
-    .arch-code .green { color: var(--green-text); }
-    .arch-code .red { color: var(--red-text); }
 
-    /* POLICIES */
-    .policies-grid {
-      margin-top: 3rem;
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    .threat-col.hdr {
+      color: var(--text-dark) !important;
+      font-size: 0.7rem; text-transform: uppercase;
+      font-weight: 700;
+      background: var(--bg);
     }
-    .policy { background: var(--bg); padding: 1.5rem; transition: background 0.2s; }
-    .policy:hover { background: var(--surface); }
-    .policy-name { font-family: var(--mono); font-size: 0.73rem; color: var(--accent); margin-bottom: 0.55rem; }
-    .policy p { font-size: 0.82rem; color: var(--text-2); line-height: 1.55; font-weight: 300; }
 
-    /* INSTALL */
+    /* ARCHITECTURE BLUEPRINT */
+    .blueprint-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      padding: 3rem;
+      overflow-x: auto;
+    }
+
+    .blueprint-code {
+      font-family: var(--mono); font-size: 0.75rem;
+      line-height: 1.8; color: var(--text-muted); white-space: pre;
+    }
+    .blueprint-code .node { color: var(--text); font-weight: 700; }
+    .blueprint-code .accent { color: var(--accent); }
+    .blueprint-code .green { color: var(--green); }
+    .blueprint-code .red { color: var(--red); }
+    .blueprint-code .dim { color: var(--text-dark); }
+
+    /* POLICIES (COMPLIANCE DOCUMENT LAYOUT) */
+    .policies-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .policy-card {
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      background: var(--bg);
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+    .policy-card:hover {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+
+    .policy-code {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--accent); margin-bottom: 1.5rem;
+      display: block; font-weight: 700;
+    }
+
+    .policy-card h3 {
+      font-size: 1.1rem; font-weight: 700; text-transform: uppercase;
+      margin-bottom: 0.8rem; letter-spacing: -0.02em;
+    }
+
+    .policy-card p {
+      font-size: 0.85rem; color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* INSTALLATION (STEP-BY-STEP FLOW) */
     .install-layout {
-      margin-top: 3rem; display: grid;
-      grid-template-columns: 1fr 1.3fr; gap: 3rem; align-items: start;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
     }
-    .install-steps { list-style: none; }
-    .install-step {
-      display: flex; gap: 1rem; padding: 1.2rem 0;
+
+    .steps-container {
+      border-top: 1px solid var(--border-bright);
+    }
+
+    .step-item {
+      padding: 1.5rem 0;
       border-bottom: 1px solid var(--border);
+      display: flex; gap: 2rem;
     }
-    .install-step:first-child { border-top: 1px solid var(--border); }
-    .step-num {
-      font-family: var(--mono); font-size: 0.68rem;
-      color: var(--text-3); padding-top: 0.1rem; flex-shrink: 0; width: 1.5rem;
-    }
-    .step-content strong {
-      display: block; font-size: 0.88rem; font-weight: 500;
-      color: var(--text); margin-bottom: 0.2rem;
-    }
-    .step-content span { font-size: 0.83rem; color: var(--text-2); font-weight: 300; }
 
-    .code-block {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; overflow: hidden;
+    .step-number {
+      font-family: var(--mono); font-size: 0.8rem; color: var(--accent);
+      font-weight: 700;
     }
-    .code-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
-    }
-    .code-dots { display: flex; gap: 0.35rem; }
-    .code-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border-hover); }
-    .code-filename { font-family: var(--mono); font-size: 0.67rem; color: var(--text-3); }
-    .code-inner {
-      padding: 1.5rem; font-family: var(--mono); font-size: 0.77rem;
-      line-height: 2; color: var(--text-2); white-space: pre;
-    }
-    .code-inner .ps { color: var(--text-3); }
-    .code-inner .cmt { color: var(--text-3); font-style: italic; }
-    .code-inner .cmd { color: var(--text); }
-    .code-inner .ok { color: var(--green-text); }
 
-    /* CTA */
-    .cta-section {
-      padding: 5rem 2rem 7rem; text-align: center;
-      max-width: 1100px; margin: 0 auto;
+    .step-title {
+      font-size: 1rem; font-weight: 700; text-transform: uppercase;
+      margin-bottom: 0.3rem;
     }
-    .cta-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 5rem 3rem;
-      position: relative; overflow: hidden;
+
+    .step-desc {
+      font-size: 0.85rem; color: var(--text-muted);
     }
-    .cta-box::before {
-      content: ''; position: absolute; top: 0; left: 50%;
-      transform: translateX(-50%); width: 600px; height: 200px;
-      background: radial-gradient(ellipse at center top, rgba(50,108,229,0.1) 0%, transparent 70%);
-      pointer-events: none;
+
+    .terminal-container {
+      border: 1px solid var(--border-bright);
+      background: #000;
     }
-    .cta-box h2 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 0.75rem; }
-    .cta-box p { color: var(--text-2); font-size: 1rem; margin-bottom: 2.5rem; font-weight: 300; }
+
+    .terminal-body {
+      padding: 2rem;
+      font-family: var(--mono); font-size: 0.75rem;
+      line-height: 1.8; color: var(--text-muted);
+    }
+    .terminal-body .cmd { color: var(--text); }
+    .terminal-body .cmt { color: var(--text-dark); }
+    .terminal-body .success { color: var(--green); font-weight: 700; }
+
+    /* CTA (TACTICAL ACTION CARD) */
+    .cta-container {
+      border: 1px solid var(--border-bright);
+      background: var(--surface);
+      padding: 5rem 3rem;
+      text-align: center;
+      position: relative;
+    }
+    
+    .cta-container h2 {
+      margin-bottom: 1rem;
+    }
+
+    .cta-container p {
+      font-family: var(--mono); font-size: 0.9rem;
+      color: var(--text-muted); margin-bottom: 2.5rem;
+    }
 
     /* FOOTER */
     footer {
-      position: relative; z-index: 1;
-      border-top: 1px solid var(--border); padding: 1.75rem 2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      max-width: 1100px; margin: 0 auto;
-    }
-    footer p { font-size: 0.78rem; color: var(--text-3); }
-    footer a { color: var(--text-3); text-decoration: none; transition: color 0.15s; }
-    footer a:hover { color: var(--text-2); }
-    .footer-links { display: flex; gap: 1.5rem; }
-    .footer-links a { font-size: 0.78rem; }
-
-      to { opacity: 1; transform: translateY(0); }
+      padding: 3rem 3.5rem;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg);
     }
 
-    @media (max-width: 900px) {
-      .layers-grid { grid-template-columns: 1fr 1fr; }
-      .why-grid { grid-template-columns: 1fr; }
-      .policies-grid { grid-template-columns: 1fr 1fr; }
+    footer p { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dark); }
+    footer a { color: var(--text-muted); text-decoration: none; font-family: var(--mono); font-size: 0.7rem; transition: color 0.1s; }
+    footer a:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 2rem; }
+
+    /* RESPONSIVENESS */
+    @media (max-width: 1024px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-left { border-right: none; border-bottom: 1px solid var(--border); padding: 4rem 2rem; }
+      .hero-right { padding: 4rem 2rem; }
+      .section-header { grid-template-columns: 1fr; gap: 1rem; }
+      .why-layout { grid-template-columns: 1fr; gap: 3rem; }
+      .stack-layer { grid-template-columns: 50px 1.5fr 1fr; gap: 1rem; }
+      .stack-desc { display: none; }
+      .policies-list { grid-template-columns: 1fr 1fr; }
       .install-layout { grid-template-columns: 1fr; }
-      nav .nav-links li:not(.nav-li-gh) { display: none; }
     }
-    @media (max-width: 640px) {
-      .layers-grid { grid-template-columns: 1fr; }
-      .policies-grid { grid-template-columns: 1fr; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 1.25rem; height: 58px; }
+      nav .nav-links li:not(.nav-li-gh) { display: none; }
+      nav .nav-logo { font-size: 0.72rem; gap: 0.55rem; }
+      nav .nav-logo img { height: 18px; }
+      section { padding: 4rem 1.25rem; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-left { padding: 4rem 1.25rem 2rem; border-right: none; border-bottom: 1px solid var(--border); }
+      .hero-right { padding: 1.5rem 1.25rem 2.25rem; }
+      .hero-logo { max-width: min(86vw, 420px); }
+      h1 { font-size: clamp(2.2rem, 11vw, 4rem); }
+      .hero-sub { font-size: 0.98rem; }
+      .hero-actions { width: 100%; }
+      .hero-actions a { flex: 1 1 100%; justify-content: center; }
+      .install-box { flex-direction: column; align-items: flex-start; gap: 0.7rem; padding: 0.8rem 0.9rem; max-width: 100%; }
+      .install-box .cmd { word-break: break-word; }
+      .policies-list { grid-template-columns: 1fr; }
+      .stack-layer { grid-template-columns: 1fr; gap: 0.8rem; padding: 1.5rem 0.5rem; }
+      .stack-num { margin-bottom: 0.2rem; }
       .threat-row { grid-template-columns: 1fr; }
-      .tc:first-child { border-right: none; border-bottom: 1px solid var(--border); }
-      h1 { font-size: 2.4rem; }
-      .cta-box { padding: 3rem 1.5rem; }
-      footer { flex-direction: column; gap: 1rem; text-align: center; }
+      .threat-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      footer { flex-direction: column; gap: 1.5rem; align-items: flex-start; padding: 3rem 1.25rem; }
+    }
+
+    @media (max-width: 420px) {
+      .nav-gh { padding: 0.38rem 0.65rem; }
+      .utility-bar { right: 0.5rem; left: 0.5rem; justify-content: center; }
+      .utility-btn { flex: 1 1 0; min-width: 0; text-align: center; }
+      .btn-primary, .btn-ghost { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
-
 <nav>
   <a href="#" class="nav-logo">
-    <img src="fortess-turtle.png" alt="Fortress in a Box logo">
-    Fortress in a Box
+    <img src="fortess-turtle.png" alt="Logo">
+    FORTRESS in a BOX
   </a>
   <ul class="nav-links">
-    <li><a href="#why">Why</a></li>
-    <li><a href="#layers">Layers</a></li>
-    <li><a href="#threats">Threats</a></li>
-    <li><a href="#install">Install</a></li>
+    <li><a href="#why" data-i18n="navWhy">[01] WHY</a></li>
+    <li><a href="#layers" data-i18n="navStack">[02] STACK</a></li>
+    <li><a href="#threats" data-i18n="navThreats">[03] THREATS</a></li>
+    <li><a href="#install" data-i18n="navDeploy">[04] DEPLOY</a></li>
     <li class="nav-li-gh">
       <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="nav-gh">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        GitHub
+        GITHUB
       </a>
     </li>
   </ul>
 </nav>
 
-<section class="hero">
-  <img src="FORTRESS-logo.png" alt="Fortress in a Box Turtle" class="hero-logo">
-  <div class="hero-badge">Open Source · MIT License</div>
-  <h1>Enterprise security for those who <span style="color:var(--accent);">protect others</span></h1>
-  <p class="hero-sub">
-    The same Kubernetes security infrastructure used by Fortune 500 companies —
-    free, open source, and deployed in a single command. Built for journalists,
-    activists, and human rights organizations.
-  </p>
-  <div class="hero-actions">
-    <a href="#install" class="btn-primary">Get Started →</a>
-    <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn-ghost">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      View on GitHub
-    </a>
-  </div>
-  <div class="install-box">
-    <span><span class="dollar">$ </span><span class="cmd">git clone github.com/JoseLorenzana272/fortress-in-a-box &amp;&amp; ./install.sh</span></span>
-    <button class="copy-btn" onclick="copyInstall(this)">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-      copy
-    </button>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section id="why">
-  <div class="section-label">Why it exists</div>
-  <h2>NGOs get hacked.<br><span style="color:var(--accent);">Constantly.</span></h2>
-  <p class="section-desc">This is not theoretical. These are real organizations, real people, real consequences.</p>
-  <div class="why-grid">
-    <div>
-      <div class="incident">
-        <div class="incident-tag">Breach · 2022</div>
-        <h3>Red Cross</h3>
-        <p>515,000+ vulnerable people's data stolen. The "Restoring Family Links" program shut down. People couldn't find their missing relatives.</p>
+<main>
+  <!-- HERO SECTION -->
+  <section class="hero" style="padding:0;">
+    <div class="hero-left">
+      <div class="hero-badge" data-i18n="statusBadge">[STATUS // OPEN_SOURCE MIT]</div>
+      <h1 data-i18n="heroTitle">Enterprise security for those who protect others</h1>
+      <p class="hero-sub" data-i18n="heroSubtitle">
+        The same Kubernetes security infrastructure used by Fortune 500 companies —
+        free, open source, and deployed in a single command. Built specifically for journalists,
+        activists, and human rights organizations.
+      </p>
+      <div class="hero-actions">
+        <a href="#install" class="btn-primary" data-i18n="heroPrimaryBtn">DEPLOY NOW →</a>
+        <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn-ghost" data-i18n="heroSecondaryBtn">
+          VIEW SOURCE
+        </a>
       </div>
-      <div class="incident">
-        <div class="incident-tag">Breach · 2022</div>
-        <h3>Amnesty International</h3>
-        <p>Breached by state-sponsored attackers. An organization that exists to protect human rights was itself being surveilled.</p>
-      </div>
-      <div class="incident">
-        <div class="incident-tag">Ongoing</div>
-        <h3>Bellingcat</h3>
-        <p>The investigative group that exposed war crimes is constantly targeted by state actors trying to destroy evidence and silence sources.</p>
+      <div class="install-box">
+        <span><span class="dollar">$ </span><span class="cmd">git clone github.com/JoseLorenzana272/fortress-in-a-box && ./install.sh</span></span>
+        <button class="copy-btn" onclick="copyInstall(this)">
+          COPY
+        </button>
       </div>
     </div>
-    <div style="padding-top:0.5rem">
-      <div class="why-stat">$0</div>
-      <p class="why-context">The average security budget for a civil society organization. State-sponsored hackers have millions. The asymmetry is deliberate.</p>
-      <blockquote class="why-callout">"Small team, critical data, zero security budget. Fortress in a Box changes that."</blockquote>
+    <div class="hero-right">
+      <img src="FortressLogo-vertical.png" alt="Fortress Core Turtle Image" class="hero-logo">
     </div>
-  </div>
-</section>
+  </section>
 
-<hr class="divider">
-
-<section id="layers">
-  <div class="section-label">Architecture</div>
-  <h2>Defense in <span style="color:var(--accent);">depth</span></h2>
-  <p class="section-desc">Four layers, each catching what the previous one might miss.</p>
-  <div class="layers-grid">
-    <div class="layer">
-      <div class="layer-num">Layer 01</div>
-      <svg class="layer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-      </svg>
-      <h3>CI/CD Scanning</h3>
-      <p>Every container image scanned for CVEs before it can reach your cluster. Pipeline fails automatically.</p>
-      <span class="layer-tool">Trivy</span>
-    </div>
-    <div class="layer">
-      <div class="layer-num">Layer 02</div>
-      <svg class="layer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <polyline points="9 12 11 14 15 10"/>
-      </svg>
-      <h3>Admission Control</h3>
-      <p>Six security policies enforced at the API level. Insecure deployments rejected before they ever start.</p>
-      <span class="layer-tool">Kyverno</span>
-    </div>
-    <div class="layer">
-      <div class="layer-num">Layer 03</div>
-      <svg class="layer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-      <h3>Runtime Detection</h3>
-      <p>Every running container is watched. Shell access or privilege escalation triggers an instant alert.</p>
-      <span class="layer-tool">Falco</span>
-    </div>
-    <div class="layer">
-      <div class="layer-num">Layer 04</div>
-      <svg class="layer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="1 4 1 10 7 10"/>
-        <polyline points="23 20 23 14 17 14"/>
-        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-      </svg>
-      <h3>GitOps Recovery</h3>
-      <p>Git is the source of truth. Deleted policies or tampered deployments restored automatically within minutes.</p>
-      <span class="layer-tool">ArgoCD</span>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section id="threats">
-  <div class="section-label">Threat coverage</div>
-  <h2>What it <span style="color:var(--accent);">stops</span></h2>
-  <p class="section-desc">Concrete threats, concrete responses. No vague promises.</p>
-  <div class="threats-table">
-    <div class="threat-row header">
-      <div class="tc">Threat</div>
-      <div class="tc">How Fortress stops it</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc">Attacker opens a shell in your container</div>
-      <div class="tc">Falco detects it in seconds and fires a Discord alert</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc">App deployed running as root</div>
-      <div class="tc">Kyverno blocks it before it ever reaches the cluster</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc">Image with known vulnerabilities</div>
-      <div class="tc">Trivy scans in CI/CD — pipeline fails automatically</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc">Security policies deleted</div>
-      <div class="tc">ArgoCD detects drift and restores from Git within 3 minutes</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc"><code style="font-family:var(--mono);font-size:0.8em;background:rgba(255,255,255,0.05);padding:0.1em 0.35em;border-radius:3px">:latest</code> image tag used</div>
-      <div class="tc">Kyverno blocks it — only pinned versions are allowed</div>
-    </div>
-    <div class="threat-row">
-      <div class="tc">Container privilege escalation</div>
-      <div class="tc">Policies enforce non-root, non-privileged, read-only filesystem</div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section>
-  <div class="section-label">Data flow</div>
-  <h2>From code push to <span style="color:var(--accent);">full protection</span></h2>
-  <p class="section-desc">Fully automated. No manual steps after ./install.sh.</p>
-  <div class="arch-wrapper">
-    <div class="arch-code"><span class="blue">GitHub Repository</span>  <span style="color:var(--text-3)">← source of truth</span>
-        <span style="color:var(--text-3)">│</span>
-        <span style="color:var(--text-3)">▼</span>
-<span class="node">GitHub Actions CI/CD</span>
-    <span style="color:var(--text-3)">├──</span> docker build
-    <span style="color:var(--text-3)">├──</span> <span class="red">trivy scan</span>          <span style="color:var(--text-3)">── fails if CVEs found</span>
-    <span style="color:var(--text-3)">├──</span> docker push → GHCR
-    <span style="color:var(--text-3)">└──</span> update deployment manifest
-        <span style="color:var(--text-3)">│</span>
-        <span style="color:var(--text-3)">▼</span>
-<span class="blue">ArgoCD</span>  <span style="color:var(--text-3)">← watches repo every 3 min, auto-applies</span>
-        <span style="color:var(--text-3)">│</span>
-        <span style="color:var(--text-3)">▼</span>
-<span class="green">Kubernetes Cluster</span>
-    <span style="color:var(--text-3)">├──</span> <span class="green">Kyverno</span>             <span style="color:var(--text-3)">── blocks non-compliant deployments</span>
-    <span style="color:var(--text-3)">├──</span> <span class="blue">Falco</span>               <span style="color:var(--text-3)">── runtime threat detection</span>
-    <span style="color:var(--text-3)">│      └──</span> Falcosidekick  <span style="color:var(--text-3)">→ Discord + Loki</span>
-    <span style="color:var(--text-3)">└──</span> <span class="node">Grafana</span>             <span style="color:var(--text-3)">── security dashboard</span></div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section>
-  <div class="section-label">Admission control</div>
-  <h2>Six policies. <span style="color:var(--accent);">Zero exceptions.</span></h2>
-  <p class="section-desc">Enforced by Kyverno at the Kubernetes API level. No insecure deployment gets through.</p>
-  <div class="policies-grid">
-    <div class="policy">
-      <div class="policy-name">disallow-root-user</div>
-      <p>Blocks containers running as root. Prevents container escape via root privileges.</p>
-    </div>
-    <div class="policy">
-      <div class="policy-name">disallow-privileged</div>
-      <p>Prevents host kernel access. Blocks full host takeover from a compromised container.</p>
-    </div>
-    <div class="policy">
-      <div class="policy-name">disallow-latest-tag</div>
-      <p>Blocks mutable <code style="font-family:var(--mono);font-size:0.85em">:latest</code> tags. Prevents supply chain attacks via image mutation.</p>
-    </div>
-    <div class="policy">
-      <div class="policy-name">require-resource-limits</div>
-      <p>Enforces CPU and memory limits on all containers. Stops denial of service attacks.</p>
-    </div>
-    <div class="policy">
-      <div class="policy-name">require-readonly-rootfs</div>
-      <p>Forces read-only root filesystem. Prevents malware from being written at runtime.</p>
-    </div>
-    <div class="policy">
-      <div class="policy-name">disallow-host-network</div>
-      <p>Prevents direct access to host network. Stops traffic sniffing and lateral movement.</p>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section id="install">
-  <div class="section-label">Installation</div>
-  <h2>Up in <span style="color:var(--accent);">five minutes</span></h2>
-  <p class="section-desc">One command. Four layers of protection. No config files to learn.</p>
-  <div class="install-layout">
-    <ul class="install-steps">
-      <li class="install-step">
-        <span class="step-num">01</span>
-        <div class="step-content">
-          <strong>Prerequisites</strong>
-          <span>A Kubernetes cluster with <code style="font-family:var(--mono);font-size:0.9em">kubectl</code> and <code style="font-family:var(--mono);font-size:0.9em">helm</code> v3+ installed.</span>
-        </div>
-      </li>
-      <li class="install-step">
-        <span class="step-num">02</span>
-        <div class="step-content">
-          <strong>Clone & run</strong>
-          <span>Clone the repository and execute the interactive installer.</span>
-        </div>
-      </li>
-      <li class="install-step">
-        <span class="step-num">03</span>
-        <div class="step-content">
-          <strong>Configure</strong>
-          <span>The installer asks for your GitHub repo URL, optional Discord webhook, and Grafana password.</span>
-        </div>
-      </li>
-      <li class="install-step">
-        <span class="step-num">04</span>
-        <div class="step-content">
-          <strong>Done</strong>
-          <span>Fortress is active. Access Grafana, ArgoCD, and Falcosidekick UI via port-forward.</span>
-        </div>
-      </li>
-    </ul>
-    <div class="code-block">
-      <div class="code-bar">
-        <div class="code-dots"><span></span><span></span><span></span></div>
-        <span class="code-filename">terminal</span>
+  <!-- WHY SECTION -->
+  <section id="why">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 01 / THREAT INTEL]</span>
+        <h2>NGOs get hacked.<br>Constantly.</h2>
       </div>
-      <div class="code-inner"><span class="cmt"># Clone the repository</span>
-<span class="ps">$</span> <span class="cmd">git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git</span>
-<span class="ps">$</span> <span class="cmd">cd fortress-in-a-box</span>
-
-<span class="cmt"># Run the installer</span>
-<span class="ps">$</span> <span class="cmd">chmod +x install.sh && ./install.sh</span>
-
-<span class="cmt"># Asks for: GitHub repo, Discord webhook (optional),</span>
-<span class="cmt"># and Grafana admin password.</span>
-
-<span class="ok">╔════════════════════════════════════════╗</span>
-<span class="ok">║       FORTRESS IS ACTIVE :D            ║</span>
-<span class="ok">╚════════════════════════════════════════╝</span></div>
+      <div>
+        <p class="section-desc">This is not theoretical. These are real operations targeting critical entities with life-or-death consequences.</p>
+      </div>
     </div>
-  </div>
-</section>
 
-<section class="cta-section">
-  <div class="cta-box">
-    <h2>Built for the people who <span style="color:var(--accent);">protect others</span></h2>
-    <p>Free, open source, MIT licensed. Deploy today.</p>
-    <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
-      <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn-primary">Get Started on GitHub →</a>
-      <a href="https://github.com/JoseLorenzana272/fortress-in-a-box/issues" target="_blank" rel="noopener" class="btn-ghost">Open an Issue</a>
+    <div class="why-layout">
+      <div class="intel-feed">
+        <div class="incident">
+          <div class="incident-meta">
+            <span>Red Cross</span>
+            <span>Breach // 2022</span>
+          </div>
+          <h3>515,000+ Records Stolen</h3>
+          <p>The "Restoring Family Links" program was compromised, shutting down humanitarian workflows designed to reunite missing relatives in conflict zones.</p>
+        </div>
+        <div class="incident">
+          <div class="incident-meta">
+            <span>Amnesty International</span>
+            <span>Breach // 2022</span>
+          </div>
+          <h3>State-Sponsored Intrusion</h3>
+          <p>An organization dedicated to exposing human rights abuses was itself monitored and compromised by highly funded threat actors.</p>
+        </div>
+        <div class="incident">
+          <div class="incident-meta">
+            <span>Bellingcat</span>
+            <span>Ongoing Target</span>
+          </div>
+          <h3>Persistent Harassment</h3>
+          <p>The investigative team exposing international war crimes faces continuous cyber espionage aimed at burning sources and deleting archives.</p>
+        </div>
+      </div>
+
+      <div class="why-sidebar">
+        <div>
+          <div class="why-stat">$0</div>
+          <p class="why-context">The average dedicated security budget for a standard civil society organization. In contrast, hostile state actors deploy millions in cyber weaponry.</p>
+        </div>
+        <blockquote class="why-callout">
+          "Small team, critical datasets, zero margin for error. Fortress is designed to close the asymmetric defense gap."
+        </blockquote>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <!-- LAYERS STACK SECTION -->
+  <section id="layers">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 02 / ARCHITECTURE]</span>
+        <h2>Defense in Depth</h2>
+      </div>
+      <div>
+        <p class="section-desc">Four decoupled operational layers. Each layer isolates and catches whatever threats bypass the previous boundaries.</p>
+      </div>
+    </div>
+
+    <div class="stack-container">
+      <div class="stack-layer">
+        <span class="stack-num">[L_01]</span>
+        <span class="stack-title">CI/CD Scanning</span>
+        <p class="stack-desc">Every single container image is automatically audited for CVEs before it reaches the pipeline. Build fails on high vulnerabilities.</p>
+        <span class="stack-tag">Trivy Engine</span>
+      </div>
+      <div class="stack-layer">
+        <span class="stack-num">[L_02]</span>
+        <span class="stack-title">Admission Control</span>
+        <p class="stack-desc">Validates requests to the K8s API against highly strict security profiles. Rejects misconfigured manifests prior to deployment.</p>
+        <span class="stack-tag">Kyverno Guard</span>
+      </div>
+      <div class="stack-layer">
+        <span class="stack-num">[L_03]</span>
+        <span class="stack-title">Runtime Auditing</span>
+        <p class="stack-desc">Monitors system calls and behaviors directly inside the kernels of active containers. Instantly flags shell spawns or privilege elevation.</p>
+        <span class="stack-tag">Falco Daemon</span>
+      </div>
+      <div class="stack-layer">
+        <span class="stack-num">[L_04]</span>
+        <span class="stack-title">GitOps Recovery</span>
+        <p class="stack-desc">Maintains Git as the strict state of truth. Automatically rolls back unauthorized configuration drifts or deletions inside 180 seconds.</p>
+        <span class="stack-tag">ArgoCD Core</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- THREATS TABLE SECTION -->
+  <section id="threats">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 03 / MITIGATION MATRIX]</span>
+        <h2>Active Threat Coverage</h2>
+      </div>
+      <div>
+        <p class="section-desc">Practical security solutions matching real exploitation scenarios. Straightforward verification with zero security-theater.</p>
+      </div>
+    </div>
+
+    <div class="threat-terminal">
+      <div class="terminal-header">
+        <span class="terminal-title">Active Security Assertions // Matrix</span>
+        <div class="terminal-dot"></div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col hdr">Vector / Attack Vector</div>
+        <div class="threat-col hdr">Fortress Handling Protocol</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">An attacker executes a shell inside a container</div>
+        <div class="threat-col">// DETECTED: Falco registers system call, triggers instant Discord Alert</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">A pod is scheduled to execute with root privileges</div>
+        <div class="threat-col">// BLOCKED: Kyverno admission controller rejects the configuration</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">An image containing critical CVSS vulnerabilities is pushed</div>
+        <div class="threat-col">// TERMINATED: Trivy halts the CI/CD pipeline build phase immediately</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">Unmanaged users delete crucial security constraints</div>
+        <div class="threat-col">// RESTORED: ArgoCD reconciles and self-heals state from git source</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">Mutable image tags (e.g. :latest) are specified</div>
+        <div class="threat-col">// REJECTED: Admission engine mandates fully pinned digest checksums</div>
+      </div>
+      <div class="threat-row">
+        <div class="threat-col">Container host namespace exploitation attempt</div>
+        <div class="threat-col">// IMMUNIZED: HostNetwork and HostPID access are strictly forbidden</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLUEPRINT DATA FLOW SECTION -->
+  <section>
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 04 / DATAFLOW MAP]</span>
+        <h2>Automated Pipeline</h2>
+      </div>
+      <div>
+        <p class="section-desc">Fully declarative architecture. No state is configured manually after executing the primary script.</p>
+      </div>
+    </div>
+
+    <div class="blueprint-wrapper">
+      <div class="blueprint-code"><span class="accent">[GitHub Repository]</span> <span class="dim">← strictly declared state</span>
+        <span class="dim">│</span>
+        <span class="dim">▼</span>
+<span class="node">[GitHub Actions Engine]</span>
+    <span class="dim">├──</span> pipeline builds images
+    <span class="dim">├──</span> <span class="red">[trivy vulnerability scan]</span>  <span class="dim">── fails build if CVEs detected</span>
+    <span class="dim">├──</span> safe images pushed to GHCR
+    <span class="dim">└──</span> declarative manifest updated
+        <span class="dim">│</span>
+        <span class="dim">▼</span>
+<span class="accent">[ArgoCD Core Engine]</span> <span class="dim">← compares live vs git every 180s, self-heals</span>
+        <span class="dim">│</span>
+        <span class="dim">▼</span>
+<span class="green">[Target Kubernetes Cluster]</span>
+    <span class="dim">├──</span> <span class="green">[Kyverno Admission Control]</span> <span class="dim">── blocks unsafe runtimes</span>
+    <span class="dim">├──</span> <span class="accent">[Falco Runtime Daemon]</span>     <span class="dim">── flags live threats</span>
+    <span class="dim">│      └──</span> Falcosidekick        <span class="dim">→ Discord alerts</span>
+    <span class="dim">└──</span> <span class="node">[Grafana Dashboards]</span>        <span class="dim">── analytical visualization</span></div>
+    </div>
+  </section>
+
+  <!-- POLICIES COMPLIANCE SECTION -->
+  <section>
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 05 / COMPLIANCE RULES]</span>
+        <h2>Enforced Security Directives</h2>
+      </div>
+      <div>
+        <p class="section-desc">Kyverno-enforced rules mapped straight to global Kubernetes hardening standards. No exceptions tolerated.</p>
+      </div>
+    </div>
+
+    <div class="policies-list">
+      <div class="policy-card">
+        <span class="policy-code">RULE_01 // SECURE_UID</span>
+        <h3>disallow-root-user</h3>
+        <p>Forces non-root identity within the container runtimes. Neutering standard root-based escape vectors entirely.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_02 // SYSTEM_KERNEL</span>
+        <h3>disallow-privileged</h3>
+        <p>Restricts root access onto host hardware namespaces, denying containerized applications direct hardware kernel control.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_03 // DIGEST_LOCK</span>
+        <h3>disallow-latest-tag</h3>
+        <p>Blocks mutable container tags. Forces pinned, predictable deployment artifacts protecting against upstream supply-chain shifts.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_04 // DOS_SHIELD</span>
+        <h3>require-limits</h3>
+        <p>Enforces explicit limits on host CPU and memory consumption. Defends cluster against hypervisor starvation and denial of service.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_05 // IMMUTABLE_FS</span>
+        <h3>readonly-root-fs</h3>
+        <p>Forces container storage to be strictly read-only at the system level. Prevents arbitrary payload injection and persistent file manipulation.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_06 // NET_ISOLATION</span>
+        <h3>disallow-host-net</h3>
+        <p>Disables direct access from container space to the raw host network interface. Negates packet sniffing and lateral cluster traversal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALLATION SECTION -->
+  <section id="install">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 06 / DEPLOYMENT]</span>
+        <h2>Setup Instructions</h2>
+      </div>
+      <div>
+        <p class="section-desc">Deploy a hardened infrastructure in under five minutes. No custom configuration templates required.</p>
+      </div>
+    </div>
+
+    <div class="install-layout">
+      <div class="steps-container">
+        <div class="step-item">
+          <span class="step-number">[01]</span>
+          <div>
+            <h3 class="step-title">Prerequisites Validation</h3>
+            <p class="step-desc">Verify active access onto a running Kubernetes instance configured with <code style="font-family:var(--mono);">kubectl</code> and <code style="font-family:var(--mono);">helm</code> v3+.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-number">[02]</span>
+          <div>
+            <h3 class="step-title">Clone Target Repository</h3>
+            <p class="step-desc">Download and clone the Fortress codebase locally onto your terminal workspace.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-number">[03]</span>
+          <div>
+            <h3 class="step-title">Execute Interactive Installer</h3>
+            <p class="step-desc">Initialize the interactive automation script. The setup engine will request your target Git repo config, optional alerts configurations, and system passwords.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-number">[04]</span>
+          <div>
+            <h3 class="step-title">Operational Validation</h3>
+            <p class="step-desc">Secure tunnels map directly to control portals (Grafana dashboard, ArgoCD, and Falcosidekick runtime view).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <span class="terminal-title">Standard Execution Shell</span>
+          <div class="terminal-dot"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="cmt"># Pull deployment codebase</span><br>
+          $ <span class="cmd">git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git</span><br>
+          $ <span class="cmd">cd fortress-in-a-box</span><br><br>
+          <span class="cmt"># Elevate execution rights and build</span><br>
+          $ <span class="cmd">chmod +x install.sh && ./install.sh</span><br><br>
+          <span class="cmt"># Define Git Repo, Grafana access, Discord Webhook</span><br>
+          <span class="cmt"># Deploying components to cluster namespaces...</span><br><br>
+          <span class="success">[+] SUCCESS: FORTRESS IS DEPLOYED AND ACTIVE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section style="border-bottom:none;">
+    <div class="cta-container">
+      <h2>Tactical Security for Vulnerable Missions</h2>
+      <p>MIT Licensed. Completely Free. Fully Transparent Auditable Code.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener" class="btn-primary">GET STARTED ON GITHUB</a>
+        <a href="https://github.com/JoseLorenzana272/fortress-in-a-box/issues" target="_blank" rel="noopener" class="btn-ghost">SUBMIT AN ISSUE</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="utility-bar" aria-label="Quick actions">
+  <button class="utility-btn" id="backToTop" type="button">↑ TOP</button>
+</div>
 
 <footer>
-  <p>© 2026 Fortress in a Box · MIT License · <a href="https://github.com/JoseLorenzana272">Jose Lorenzana</a></p>
+  <p>© 2026 FORTRESS IN A BOX · <a href="https://github.com/JoseLorenzana272">JOSE LORENZANA</a></p>
   <div class="footer-links">
-    <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://www.linkedin.com/in/jose-lorenzana-medina/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/JoseLorenzana272/fortress-in-a-box" target="_blank" rel="noopener">GITHUB</a>
+    <a href="https://www.linkedin.com/in/jose-lorenzana-medina/" target="_blank" rel="noopener">LINKEDIN</a>
   </div>
 </footer>
 
@@ -755,13 +970,31 @@
     const cmd = 'git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git && cd fortress-in-a-box && chmod +x install.sh && ./install.sh';
     navigator.clipboard.writeText(cmd).then(() => {
       btn.classList.add('copied');
-      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> copied`;
+      btn.innerHTML = `COPIED`;
       setTimeout(() => {
         btn.classList.remove('copied');
-        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> copy`;
+        btn.innerHTML = `COPY`;
       }, 2000);
     });
   }
+
+  const utilityBar = document.querySelector('.utility-bar');
+  const backToTopButton = document.getElementById('backToTop');
+
+  function updateUtilityVisibility() {
+    if (!utilityBar) return;
+    const shouldShow = window.scrollY > 260;
+    utilityBar.classList.toggle('hidden', !shouldShow);
+  }
+
+  if (backToTopButton) {
+    backToTopButton.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  window.addEventListener('scroll', updateUtilityVisibility, { passive: true });
+  updateUtilityVisibility();
 </script>
 </body>
 </html>
