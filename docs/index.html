@@ -307,6 +307,16 @@
       font-size: 1rem; color: var(--text-muted);
       line-height: 1.6; max-width: 480px;
     }
+    .section-desc a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-color: rgba(107, 182, 255, 0.55);
+      text-underline-offset: 0.18em;
+    }
+    .section-desc a:hover {
+      color: var(--text);
+      text-decoration-color: var(--text);
+    }
 
     /* WHY SECTION - INTEL DOSSIER STYLE */
     .why-layout {
@@ -950,6 +960,24 @@
           <span class="success">[+] SUCCESS: FORTRESS IS DEPLOYED AND ACTIVE</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- AUTHOR SECTION -->
+  <section id="author">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 07 / BUILT BY]</span>
+        <h2>Created by<br>José Lorenzana</h2>
+      </div>
+      <div>
+        <p class="section-desc">Computer Engineer · Support Engineer · International Speaker</p>
+        <p class="section-desc" style="margin-top:1rem;">Speaking on Fortress in a Box at <a href="https://blueteamcon.com/" target="_blank" rel="noopener">Blue Team Con</a> in Chicago, USA and <a href="https://blackhat.com/sector/" target="_blank" rel="noopener">SecTor</a> in Toronto, Canada.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <a href="https://github.com/JoseLorenzana272" target="_blank" rel="noopener" class="btn-ghost">GITHUB</a>
+      <a href="https://www.linkedin.com/in/jose-lorenzana-medina/" target="_blank" rel="noopener" class="btn-ghost">LINKEDIN</a>
     </div>
   </section>
 
