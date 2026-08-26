@@ -3,10 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -17,173 +14,76 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": 0,
   "links": [],
+  "description": "Real-time runtime security monitoring for the Fortress in a Box stack, powered by Falco + Loki.",
+  "tags": ["fortress", "security", "falco"],
   "panels": [
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineWidth": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 2,
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
       "options": {
-        "barRadius": 0,
-        "barWidth": 0.97,
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "orientation": "auto",
-        "showValue": "auto",
-        "stacking": "none",
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
+        "mode": "markdown",
+        "content": "## 🛡️ Fortress Security Dashboard\nRuntime threat detection for this cluster — powered by **Falco** (syscall monitoring) and **Loki** (log aggregation). Data refreshes automatically; use the time picker (top right) to change the observation window."
       },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "direction": "backward",
-          "editorMode": "code",
-          "expr": "sum by (rule) (count_over_time({source=\"syscall\"}[$__range]))",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Alert Count by Rule",
-      "type": "barchart"
+      "fieldConfig": { "defaults": {}, "overrides": [] }
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
+      "id": 101,
+      "panels": []
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Overall cluster security posture based on Critical/Warning/Error events in the selected time range.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
+          "color": { "mode": "thresholds" },
           "mappings": [
             {
+              "type": "value",
               "options": {
-                "0": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "SECURE"
-                }
-              },
-              "type": "value"
+                "0": { "color": "green", "index": 0, "text": "✓ SECURE — No Alerts" }
+              }
             },
             {
+              "type": "range",
               "options": {
                 "from": 0.000001,
-                "result": {
-                  "color": "dark-red",
-                  "index": 1,
-                  "text": "ALERT"
-                },
-                "to": 9999999
-              },
-              "type": "range"
+                "to": 9999999,
+                "result": { "color": "dark-red", "index": 1, "text": "⚠ ALERT — Review Required" }
+              }
             }
           ],
           "thresholds": {
             "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          }
+            "steps": [ { "color": "green", "value": 0 } ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 4 },
       "id": 3,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
         "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
         "wideLayout": true
       },
       "pluginVersion": "12.3.1",
       "targets": [
         {
+          "datasource": { "type": "loki", "uid": "loki" },
           "direction": "backward",
           "editorMode": "code",
           "expr": "sum(count_over_time({priority=~\"Critical|Warning|Error\"}[$__range])) or vector(0)",
@@ -191,41 +91,164 @@
           "refId": "A"
         }
       ],
-      "title": "Cluster Status",
-      "type": "stat"
+      "title": "Cluster Status"
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Total number of security events logged by Falco in the selected time range, regardless of severity.",
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "blue", "value": 0 } ] },
+          "unit": "short",
+          "decimals": 0
+        },
         "overrides": []
       },
-      "gridPos": {
-        "h": 6,
-        "w": 24,
-        "x": 0,
-        "y": 8
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 4 },
+      "id": 102,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({source=\"syscall\"}[$__range])) or vector(0)",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Events Logged"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Current dashboard time window, for quick reference during a demo or incident review.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "text" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text", "value": 0 } ] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 4 },
+      "id": 103,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "expr": "", "refId": "A" }
+      ],
+      "title": "Window: Last 6 Hours"
+    },
+    {
+      "type": "row",
+      "title": "Alert Breakdown",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "id": 104,
+      "panels": []
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Which Falco rules are firing most often — spikes here usually point to a specific misconfigured workload or an active anomaly worth investigating first.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Event Count",
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "gradientMode": "hue",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "scaleDistribution": { "type": "linear" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "green", "value": 0 }, { "color": "red", "value": 80 } ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 11 },
+      "id": 2,
+      "options": {
+        "barRadius": 0.1,
+        "barWidth": 0.85,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": { "calcs": ["sum", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": { "hideZeros": false, "mode": "single", "sort": "desc" },
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum by (rule) (count_over_time({source=\"syscall\"}[$__range]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Alert Count by Rule"
+    },
+    {
+      "type": "row",
+      "title": "Live Feed",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 105,
+      "panels": []
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Raw Falco syscall events as they're captured. Use the search bar inside this panel to filter by keyword (pod name, process, rule) without editing the dashboard.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 21 },
       "id": 1,
       "options": {
         "dedupStrategy": "none",
         "enableInfiniteScrolling": false,
         "enableLogDetails": true,
-        "showControls": false,
-        "showTime": false,
+        "showControls": true,
+        "showTime": true,
         "sortOrder": "Descending",
-        "wrapLogMessage": false
+        "wrapLogMessage": true
       },
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
+          "datasource": { "type": "loki", "uid": "loki" },
           "direction": "backward",
           "editorMode": "code",
           "expr": "{source=\"syscall\"}",
@@ -233,23 +256,16 @@
           "refId": "A"
         }
       ],
-      "title": "Security Events Logs",
-      "type": "logs"
+      "title": "Security Events Logs"
     }
   ],
   "preload": false,
   "schemaVersion": 42,
-  "tags": [],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Fortress Security Dashboard",
   "uid": "adhxmzc",
-  "version": 2
+  "version": 3
 }
