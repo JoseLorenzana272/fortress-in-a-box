@@ -95,7 +95,8 @@ install_kyverno() {
     helm upgrade --install kyverno kyverno/kyverno \
         --namespace kyverno \
         --create-namespace \
-        --wait
+        --wait \
+        --timeout 10m
 
     print_step "Applying security policies..."
     kubectl apply -f k8s/policies/
@@ -163,7 +164,8 @@ EOF
         --set falcosidekick.config.discord.minimumpriority="warning" \
         --set falcosidekick.config.loki.hostport="http://loki-gateway.monitoring.svc.cluster.local:80" \
         --set falcosidekick.config.loki.minimumpriority="notice" \
-        --wait
+        --wait \
+        --timeout 10m
     else
         helm upgrade --install falco falcosecurity/falco \
         --namespace falco \
@@ -205,7 +207,8 @@ install_monitoring() {
         --set backend.replicas=0 \
         --set chunksCache.enabled=false \
         --set resultsCache.enabled=false \
-        --wait
+        --wait \
+        --timeout 10m
 
     print_step "Installing Grafana (security dashboard)..."
 
@@ -219,7 +222,8 @@ install_monitoring() {
         --set sidecar.dashboards.label=grafana_dashboard \
         --set sidecar.datasources.enabled=true \
         --set sidecar.datasources.label=grafana_datasource \
-        --wait
+        --wait \
+        --timeout 10m
 
     print_step "Importing Fortress security dashboard..."
     kubectl create configmap fortress-dashboard \
@@ -259,7 +263,8 @@ install_argocd() {
     helm upgrade --install argocd argo/argo-cd \
         --namespace argocd \
         --create-namespace \
-        --wait
+        --wait \
+        --timeout 10m
 
     print_step "Configuring ArgoCD applications..."
     
