@@ -15,9 +15,22 @@ spec:
     - name: exclude-system-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
   validations:
-    - message: "FORTRESS SECURITY: Using 'latest' image tag is not allowed. Pin your image to a specific version!"
+    - message: "FORTRESS SECURITY: Using 'latest' or insecure image tags is not allowed. Pin your image to a specific version!"
       expression: >
         object.spec.containers.all(c,
-          !c.image.endsWith(':latest') &&
-          c.image.contains(':')
+          (
+            c.image.matches('^.+:[^/:@]+$') &&
+            !c.image.endsWith(':latest')
+          ) ||
+          c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')
+        ) &&
+        (
+          !has(object.spec.initContainers) ||
+          object.spec.initContainers.all(c,
+            (
+              c.image.matches('^.+:[^/:@]+$') &&
+              !c.image.endsWith(':latest')
+            ) ||
+            c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')
+          )
         )
