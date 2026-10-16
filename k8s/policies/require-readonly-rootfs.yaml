@@ -21,4 +21,12 @@ spec:
           has(c.securityContext) &&
           has(c.securityContext.readOnlyRootFilesystem) &&
           c.securityContext.readOnlyRootFilesystem == true
+        ) &&
+        (
+          !has(object.spec.initContainers) ||
+          object.spec.initContainers.all(c,
+            has(c.securityContext) &&
+            has(c.securityContext.readOnlyRootFilesystem) &&
+            c.securityContext.readOnlyRootFilesystem == true
+          )
         )
