@@ -66,9 +66,13 @@ collect_input() {
     echo -e "(e.g., ../my-app-repo)"
     read -r APP_LOCAL_PATH
 
-    echo -e "Enter your Grafana admin password (default: fortress-admin):"
-    read -r GRAFANA_PASSWORD
-    GRAFANA_PASSWORD=${GRAFANA_PASSWORD:-fortress-admin}
+    echo -e "Enter your Grafana admin password:"
+    read -r -s GRAFANA_PASSWORD
+    echo
+
+    if [[ -z "$GRAFANA_PASSWORD" ]]; then
+        print_error "Grafana admin password cannot be empty."
+    fi
 }
 
 # ============================================================
@@ -212,10 +216,18 @@ install_monitoring() {
 
     print_step "Installing Grafana (security dashboard)..."
 
+    kubectl create secret generic grafana-admin \
+        --namespace monitoring \
+        --from-literal=admin-user=admin \
+        --from-literal=admin-password="$GRAFANA_PASSWORD" \
+        --dry-run=client -o yaml | kubectl apply -f -
+
     helm upgrade --install grafana grafana/grafana \
         --namespace monitoring \
         --create-namespace \
-        --set adminPassword="$GRAFANA_PASSWORD" \
+        --set admin.existingSecret=grafana-admin \
+        --set admin.userKey=admin-user \
+        --set admin.passwordKey=admin-password \
         --set service.type=ClusterIP \
         --set persistence.enabled=false \
         --set sidecar.dashboards.enabled=true \
@@ -313,7 +325,7 @@ print_summary() {
     echo -e "Access your tools:\n"
     echo -e "  ${BLUE}Grafana Dashboard:${NC}"
     echo -e "  kubectl port-forward svc/grafana -n monitoring 3000:80"
-    echo -e "  http://localhost:3000 (admin / $GRAFANA_PASSWORD)\n"
+    echo -e "  http://localhost:3000 (username: admin; use the password configured during installation)\n"
     echo -e "  ${BLUE}ArgoCD:${NC}"
     echo -e "  kubectl port-forward svc/argocd-server -n argocd 8080:443"
     echo -e "  https://localhost:8080 (admin / $ARGOCD_PASSWORD)\n"
