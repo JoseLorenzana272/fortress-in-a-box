@@ -3,13 +3,14 @@
 # ============================================================
 # Use this as a template for deploying your application.
 #
-# This deployment is hardened to pass all 6 Kyverno policies:
+# This deployment is hardened to pass all 7 Kyverno policies:
 #   - disallow-root-user
 #   - disallow-privileged-containers
 #   - disallow-latest-tag (handled automatically by CI/CD)
 #   - require-resource-limits
 #   - require-readonly-rootfs
 #   - disallow-host-network
+#   - disallow-host-namespaces
 #
 # IMPORTANT: The image tag is automatically updated by the
 # CI/CD pipeline on every push. Do not change it manually.
@@ -35,7 +36,7 @@ spec:
       labels:
         app: fortress-app
     spec:
-      # Pod level - not root, no host network
+      # Pod level - not root, no host network/PID/IPC
       securityContext:
         runAsNonRoot: true
         runAsUser: 101
