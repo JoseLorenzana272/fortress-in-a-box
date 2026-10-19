@@ -814,11 +814,11 @@
       </div>
       <div class="threat-row">
         <div class="threat-col">Mutable image tags (e.g. :latest) are specified</div>
-        <div class="threat-col">// REJECTED: Admission engine mandates fully pinned digest checksums</div>
+        <div class="threat-col">// REJECTED: Admission engine mandates pinned version tags or SHA256 digests</div>
       </div>
       <div class="threat-row">
         <div class="threat-col">Container host namespace exploitation attempt</div>
-        <div class="threat-col">// IMMUNIZED: HostNetwork and HostPID access are strictly forbidden</div>
+        <div class="threat-col">// IMMUNIZED: HostNetwork, HostPID and HostIPC access are strictly forbidden</div>
       </div>
     </div>
   </section>
@@ -899,6 +899,11 @@
         <span class="policy-code">RULE_06 // NET_ISOLATION</span>
         <h3>disallow-host-net</h3>
         <p>Disables direct access from container space to the raw host network interface. Negates packet sniffing and lateral cluster traversal.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_07 // PROC_ISOLATION</span>
+        <h3>disallow-host-namespaces</h3>
+        <p>Blocks sharing the host PID and IPC namespaces. Containers cannot see or signal host processes or read host shared memory.</p>
       </div>
     </div>
   </section>
