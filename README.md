@@ -192,7 +192,7 @@ your-app/
     └── deployment.yaml          ← copy from k8s/examples/secure-deployment-example.yaml
 ```
 
-Your deployment(s) must satisfy all 6 security policies:
+Your deployment(s) must satisfy all 7 security policies:
 
 | Policy | What It Requires |
 |--------|-----------------|
@@ -202,6 +202,7 @@ Your deployment(s) must satisfy all 6 security policies:
 | `disallow-latest-tag` | Image pinned to a specific version or SHA |
 | `require-readonly-rootfs` | `readOnlyRootFilesystem: true` |
 | `disallow-host-network` | `hostNetwork` not set or `false` |
+| `disallow-host-namespaces` | `hostPID` and `hostIPC` not set or `false` |
 
 If your app needs to write to disk, use `emptyDir` volumes for specific paths:
 ```yaml
@@ -252,6 +253,7 @@ Kubernetes Cluster
 | `disallow-latest-tag` | Supply chain attacks via mutable image tags |
 | `require-readonly-rootfs` | Malware installation at runtime |
 | `disallow-host-network` | Network traffic sniffing |
+| `disallow-host-namespaces` | Inspecting host processes and shared memory |
 
 ---
 
