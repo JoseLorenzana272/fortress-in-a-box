@@ -49,7 +49,7 @@ jobs:
 
       - name: Update deployment image tag
         run: |
-          sed -i "s|image: .*|image: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+          sed -i "s|image: .*|image: ${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             k8s/examples/secure-deployment-example.yaml
       
       - name: Commit and push changes directly
