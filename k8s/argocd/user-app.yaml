@@ -4,7 +4,7 @@ metadata:
   name: user-workloads
   namespace: argocd
 spec:
-  project: default
+  project: fortress-user-workloads
   source:
     repoURL: REPLACE_ME
     targetRevision: HEAD

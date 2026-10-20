@@ -283,6 +283,9 @@ install_argocd() {
     # Apply fortress to ArgoCD
     kubectl apply -f k8s/argocd/fortress-app.yaml
     
+    # Restricted project must exist before the user app references it
+    kubectl apply -f k8s/argocd/user-project.yaml
+
     # Apply user-app injecting the repository in memory without modifying the file
     sed "s|REPLACE_ME|$GITHUB_REPO|g" \
         k8s/argocd/user-app.yaml | kubectl apply -f -

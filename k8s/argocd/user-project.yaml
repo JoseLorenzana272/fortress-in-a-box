@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: fortress-user-workloads
+  namespace: argocd
+spec:
+  description: "User applications. Cannot deploy into platform namespaces or change cluster-wide security."
+  # Any repo: the real boundary is destinations + resource kinds below
+  sourceRepos:
+    - "*"
+  # Deny entries (!) take precedence over the '*' allow entry
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-system"
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-public"
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-node-lease"
+    - server: https://kubernetes.default.svc
+      namespace: "!argocd"
+    - server: https://kubernetes.default.svc
+      namespace: "!monitoring"
+    - server: https://kubernetes.default.svc
+      namespace: "!falco"
+    - server: https://kubernetes.default.svc
+      namespace: "!kyverno"
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  # Only Namespace is needed (CreateNamespace=true); blocks ClusterRoleBindings, CRDs, cluster policies
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  # Apps must not ship their own policy exceptions, Kyverno policies or Argo objects
+  namespaceResourceBlacklist:
+    - group: kyverno.io
+      kind: "*"
+    - group: policies.kyverno.io
+      kind: "*"
+    - group: argoproj.io
+      kind: "*"
