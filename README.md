@@ -193,7 +193,7 @@ your-app/
     └── deployment.yaml          ← copy from k8s/examples/secure-deployment-example.yaml
 ```
 
-Your deployment(s) must satisfy all 7 security policies:
+Fortress enforces 8 security policies. Your deployment(s) must satisfy these 7 (the 8th, `disallow-insecure-ephemeral-containers`, only applies when someone runs `kubectl debug` — see [Debugging a running pod](#debugging-a-running-pod-kubectl-debug)):
 
 | Policy | What It Requires |
 |--------|-----------------|

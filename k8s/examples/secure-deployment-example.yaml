@@ -3,7 +3,9 @@
 # ============================================================
 # Use this as a template for deploying your application.
 #
-# This deployment is hardened to pass all 7 Kyverno policies:
+# This deployment is hardened to pass the 7 Kyverno policies that apply to
+# deployments (the 8th, disallow-insecure-ephemeral-containers, only applies
+# to kubectl debug):
 #   - disallow-root-user
 #   - disallow-privileged-containers
 #   - disallow-latest-tag (handled automatically by CI/CD)
