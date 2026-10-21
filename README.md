@@ -49,6 +49,7 @@ The pattern is always the same: small team, critical data, zero security budget.
 | Vulnerable image with known CVEs | Trivy scans every image in CI/CD — pipeline fails if vulnerabilities found |
 | Someone deletes your security policies | ArgoCD detects the drift and restores them automatically |
 | Junior dev uses `:latest` image tag | Kyverno blocks it — only pinned versions allowed |
+| Someone attaches a privileged debug container to a running app | Kyverno blocks it — debug containers must be non-root, read-only and unprivileged |
 
 ---
 
@@ -192,7 +193,7 @@ your-app/
     └── deployment.yaml          ← copy from k8s/examples/secure-deployment-example.yaml
 ```
 
-Your deployment(s) must satisfy all 7 security policies:
+Fortress enforces 8 security policies. Your deployment(s) must satisfy these 7 (the 8th, `disallow-insecure-ephemeral-containers`, only applies when someone runs `kubectl debug` — see [Debugging a running pod](#debugging-a-running-pod-kubectl-debug)):
 
 | Policy | What It Requires |
 |--------|-----------------|
@@ -213,6 +214,31 @@ volumes:
   - name: tmp
     emptyDir: {}
 ```
+
+### Debugging a running pod (`kubectl debug`)
+
+The `disallow-insecure-ephemeral-containers` policy rejects plain `kubectl debug` (it runs as root by default). Save this profile as `fortress-debug.json`:
+
+```json
+{
+  "securityContext": {
+    "runAsNonRoot": true,
+    "runAsUser": 65534,
+    "readOnlyRootFilesystem": true,
+    "allowPrivilegeEscalation": false,
+    "capabilities": { "drop": ["ALL"] }
+  }
+}
+```
+
+Then debug with a pinned image (tested with kubectl 1.31):
+
+```bash
+kubectl debug -it <pod> --image=busybox:1.36 --target=<container> \
+  --profile=restricted --custom=fortress-debug.json
+```
+
+If it is rejected, the error message names the exact field to fix. Debug containers can see the app's processes and network, but cannot mount the pod's volumes, so mounted secrets stay out of reach.
 
 ---
 
@@ -254,6 +280,7 @@ Kubernetes Cluster
 | `require-readonly-rootfs` | Malware installation at runtime |
 | `disallow-host-network` | Network traffic sniffing |
 | `disallow-host-namespaces` | Inspecting host processes and shared memory |
+| `disallow-insecure-ephemeral-containers` | Stealing data or escalating privileges through debug containers added to running pods |
 
 ---
 

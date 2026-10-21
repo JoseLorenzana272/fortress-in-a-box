@@ -820,6 +820,10 @@
         <div class="threat-col">Container host namespace exploitation attempt</div>
         <div class="threat-col">// IMMUNIZED: HostNetwork, HostPID and HostIPC access are strictly forbidden</div>
       </div>
+      <div class="threat-row">
+        <div class="threat-col">Privileged debug container attached to a running app</div>
+        <div class="threat-col">// REJECTED: Debug containers must be non-root, read-only and unprivileged</div>
+      </div>
     </div>
   </section>
 
@@ -865,7 +869,7 @@
         <h2>Enforced Security Directives</h2>
       </div>
       <div>
-        <p class="section-desc">Kyverno-enforced rules mapped straight to global Kubernetes hardening standards. No exceptions tolerated.</p>
+        <p class="section-desc">Kyverno-enforced rules mapped straight to global Kubernetes hardening standards. Platform namespaces are isolated from user workloads.</p>
       </div>
     </div>
 
@@ -904,6 +908,11 @@
         <span class="policy-code">RULE_07 // PROC_ISOLATION</span>
         <h3>disallow-host-namespaces</h3>
         <p>Blocks sharing the host PID and IPC namespaces. Containers cannot see or signal host processes or read host shared memory.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_08 // DEBUG_GUARD</span>
+        <h3>secure-ephemeral-containers</h3>
+        <p>Debug containers added with kubectl debug must be pinned, non-root, read-only, unprivileged and cannot mount the app's volumes. Closes a side door into running workloads.</p>
       </div>
     </div>
   </section>
