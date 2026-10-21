@@ -1,0 +1,65 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-insecure-ephemeral-containers
+spec:
+  validationActions:
+    - Deny
+  # Subresource only exists at request time; background scans would need extra RBAC and find nothing
+  evaluation:
+    background:
+      enabled: false
+  # kubectl debug adds containers through this subresource; the pod policies never see it
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["pods/ephemeralcontainers"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+  variables:
+    - name: ephemeral
+      expression: "object.spec.?ephemeralContainers.orValue([])"
+  validations:
+    - message: "FORTRESS SECURITY: Debug containers must use a pinned image tag or SHA256 digest (not :latest)."
+      expression: >
+        variables.ephemeral.all(c,
+          (c.image.matches('^.+:[^/:@]+$') && !c.image.endsWith(':latest')) ||
+          c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')
+        )
+    - message: "FORTRESS SECURITY: Debug containers must set securityContext.runAsNonRoot: true."
+      expression: >
+        variables.ephemeral.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.runAsNonRoot) &&
+          c.securityContext.runAsNonRoot == true
+        )
+    - message: "FORTRESS SECURITY: Debug containers cannot be privileged."
+      expression: >
+        variables.ephemeral.all(c,
+          !has(c.securityContext) ||
+          !has(c.securityContext.privileged) ||
+          c.securityContext.privileged == false
+        )
+    - message: "FORTRESS SECURITY: Debug containers must set securityContext.readOnlyRootFilesystem: true."
+      expression: >
+        variables.ephemeral.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.readOnlyRootFilesystem) &&
+          c.securityContext.readOnlyRootFilesystem == true
+        )
+    # Omitted allowPrivilegeEscalation defaults to true, so it must be explicit
+    - message: "FORTRESS SECURITY: Debug containers must set allowPrivilegeEscalation: false and cannot add Linux capabilities."
+      expression: >
+        variables.ephemeral.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.allowPrivilegeEscalation) &&
+          c.securityContext.allowPrivilegeEscalation == false &&
+          (
+            !has(c.securityContext.capabilities) ||
+            !has(c.securityContext.capabilities.add) ||
+            size(c.securityContext.capabilities.add) == 0
+          )
+        )
