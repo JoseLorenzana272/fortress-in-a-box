@@ -912,7 +912,7 @@
       <div class="policy-card">
         <span class="policy-code">RULE_08 // DEBUG_GUARD</span>
         <h3>secure-ephemeral-containers</h3>
-        <p>Debug containers added with kubectl debug must be pinned, non-root, read-only and unprivileged. Closes a side door into running workloads.</p>
+        <p>Debug containers added with kubectl debug must be pinned, non-root, read-only, unprivileged and cannot mount the app's volumes. Closes a side door into running workloads.</p>
       </div>
     </div>
   </section>

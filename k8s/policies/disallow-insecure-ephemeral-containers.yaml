@@ -63,3 +63,9 @@ spec:
             size(c.securityContext.capabilities.add) == 0
           )
         )
+    # Kubernetes never auto-mounts volumes into debug containers, so this only stops deliberate mounts
+    - message: "FORTRESS SECURITY: Debug containers cannot mount the pod's volumes (they may contain secrets)."
+      expression: >
+        variables.ephemeral.all(c,
+          !has(c.volumeMounts) || size(c.volumeMounts) == 0
+        )

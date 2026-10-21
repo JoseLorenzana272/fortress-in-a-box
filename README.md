@@ -238,7 +238,7 @@ kubectl debug -it <pod> --image=busybox:1.36 --target=<container> \
   --profile=restricted --custom=fortress-debug.json
 ```
 
-If it is rejected, the error message names the exact field to fix.
+If it is rejected, the error message names the exact field to fix. Debug containers can see the app's processes and network, but cannot mount the pod's volumes, so mounted secrets stay out of reach.
 
 ---
 
