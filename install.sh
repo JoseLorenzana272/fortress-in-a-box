@@ -317,9 +317,6 @@ scaffold_trivy() {
 # PRINT FINAL SUMMARY
 # ============================================================
 print_summary() {
-    ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret \
-        -o jsonpath="{.data.password}" | base64 -d)
-
     echo -e "\n${GREEN}"
     echo "╔════════════════════════════════════════════╗"
     echo "║         FORTRESS IS ACTIVE :D              ║"
@@ -331,7 +328,11 @@ print_summary() {
     echo -e "  http://localhost:3000 (username: admin; use the password configured during installation)\n"
     echo -e "  ${BLUE}ArgoCD:${NC}"
     echo -e "  kubectl port-forward svc/argocd-server -n argocd 8080:443"
-    echo -e "  https://localhost:8080 (admin / $ARGOCD_PASSWORD)\n"
+    echo -e "  https://localhost:8080 (username: admin)"
+    echo -e "  To see your password, run:"
+    echo -e "  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d; echo"
+    echo -e "  Tip: after your first login, change it in User Info and delete that secret:"
+    echo -e "  kubectl -n argocd delete secret argocd-initial-admin-secret\n"
     echo -e "  ${BLUE}Falcosidekick UI:${NC}"
     echo -e "  kubectl port-forward svc/falco-falcosidekick-ui -n falco 2802:2802"
     echo -e "  http://localhost:2802\n"
