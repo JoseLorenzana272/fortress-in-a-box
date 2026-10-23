@@ -126,6 +126,20 @@ Access your tools:
   http://localhost:2802
 ```
 
+### Versions and updates
+
+- **Release (recommended):** `git clone --branch <version> ...` keeps your cluster on that version. Changes on `main` never reach it until you update. This applies to releases from v2.0.0 onwards.
+- **Development (`main`):** every change merged into `main` reaches your cluster within about 3 minutes. The installer warns you when you install this way.
+
+To update to a new release:
+```bash
+git fetch --tags
+git checkout <new-version>
+./install.sh
+```
+
+To use your own fork, edit `k8s/argocd/fortress-app.yaml` in your fork and set `repoURL` to your fork and `targetRevision` to your branch or tag. Fortress reads this file from Git, so the change must be committed there.
+
 ---
 
 ## Verifying It Works
