@@ -49,6 +49,7 @@ The pattern is always the same: small team, critical data, zero security budget.
 | Vulnerable image with known CVEs | Trivy scans every image in CI/CD — pipeline fails if vulnerabilities found |
 | Someone deletes your security policies | ArgoCD detects the drift and restores them automatically |
 | Junior dev uses `:latest` image tag | Kyverno blocks it — only pinned versions allowed |
+| A manifest copied from a tutorial adds `SYS_ADMIN` or other root powers | Kyverno blocks it — containers cannot add Linux capabilities or escalate privileges |
 | Someone attaches a privileged debug container to a running app | Kyverno blocks it — debug containers must be non-root, read-only and unprivileged |
 
 ---
@@ -193,7 +194,7 @@ your-app/
     └── deployment.yaml          ← copy from k8s/examples/secure-deployment-example.yaml
 ```
 
-Fortress enforces 8 security policies. Your deployment(s) must satisfy these 7 (the 8th, `disallow-insecure-ephemeral-containers`, only applies when someone runs `kubectl debug` — see [Debugging a running pod](#debugging-a-running-pod-kubectl-debug)):
+Fortress enforces 9 security policies. Your deployment(s) must satisfy these 8 (the 9th, `disallow-insecure-ephemeral-containers`, only applies when someone runs `kubectl debug` — see [Debugging a running pod](#debugging-a-running-pod-kubectl-debug)):
 
 | Policy | What It Requires |
 |--------|-----------------|
@@ -204,6 +205,9 @@ Fortress enforces 8 security policies. Your deployment(s) must satisfy these 7 (
 | `require-readonly-rootfs` | `readOnlyRootFilesystem: true` |
 | `disallow-host-network` | `hostNetwork` not set or `false` |
 | `disallow-host-namespaces` | `hostPID` and `hostIPC` not set or `false` |
+| `disallow-capabilities-and-escalation` | No added Linux capabilities (except `NET_BIND_SERVICE`) and `allowPrivilegeEscalation` not set to `true` |
+
+Most apps never declare capabilities, so they pass without changes. Apps that genuinely need extra capabilities (for example a VPN sidecar that needs `NET_ADMIN`) will be rejected; ask your cluster admin before adding them.
 
 If your app needs to write to disk, use `emptyDir` volumes for specific paths:
 ```yaml
@@ -281,6 +285,7 @@ Kubernetes Cluster
 | `disallow-host-network` | Network traffic sniffing |
 | `disallow-host-namespaces` | Inspecting host processes and shared memory |
 | `disallow-insecure-ephemeral-containers` | Stealing data or escalating privileges through debug containers added to running pods |
+| `disallow-capabilities-and-escalation` | Regaining root powers piece by piece (e.g. `SYS_ADMIN`) without `privileged: true` |
 
 ---
 
