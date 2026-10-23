@@ -96,11 +96,13 @@ Before running the installer, make sure you have:
 - A GitHub repository for your application
 - (Optional) A Discord webhook URL for real-time alerts
 
+Falco needs privileged pods and a Linux kernel 5.8+ (most clusters; not GKE Autopilot).
+
 ---
 
 ## Installation
 ```bash
-git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git
+git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git
 cd fortress-in-a-box
 chmod +x install.sh
 ./install.sh
