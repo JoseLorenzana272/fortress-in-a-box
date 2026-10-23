@@ -23,7 +23,7 @@ ARGOCD_CHART_VERSION=10.6.1
 print_banner() {
     echo -e "${BLUE}"
     echo "╔════════════════════════════════════════════╗"
-    echo "║         FORTRESS IN A BOX v1.0             ║"
+    echo "║         FORTRESS IN A BOX v2.0             ║"
     echo "║   Enterprise Security for Those Who Need   ║"
     echo "║              It Most :)                    ║"
     echo "╚════════════════════════════════════════════╝"
@@ -66,6 +66,12 @@ check_version() {
     if [[ "$FORTRESS_VERSION" == "HEAD" ]]; then
         echo -e "${YELLOW}[!]${NC} You are installing the development version (main)."
         echo -e "    For a stable install, use a release: https://github.com/JoseLorenzana272/fortress-in-a-box/releases"
+        # Enter or no input continues - only "n" stops
+        read -r -p "    Continue with the development version? [Y/n] " CONTINUE_DEV || true
+        if [[ "$CONTINUE_DEV" =~ ^[Nn] ]]; then
+            echo -e "    Nothing was installed."
+            exit 0
+        fi
     elif [[ -n "$FORTRESS_VERSION" ]]; then
         print_success "Installing Fortress $FORTRESS_VERSION"
     fi
