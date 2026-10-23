@@ -140,7 +140,7 @@ Access your tools:
 ### Versions and updates
 
 - **Release (recommended):** `git clone --branch <version> ...` keeps your cluster on that version. Changes on `main` never reach it until you update. This applies to releases from v2.0.0 onwards.
-- **Development (`main`):** every change merged into `main` reaches your cluster within about 3 minutes. The installer warns you when you install this way.
+- **Development (`main`):** every change merged into `main` reaches your cluster within about 3 minutes. The installer warns you and asks before continuing (Enter continues).
 
 To update, install the new release the same way, in a new folder:
 ```bash
