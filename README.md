@@ -52,6 +52,17 @@ The pattern is always the same: small team, critical data, zero security budget.
 | A manifest copied from a tutorial adds `SYS_ADMIN` or other root powers | Kyverno blocks it — containers cannot add Linux capabilities or escalate privileges |
 | Someone attaches a privileged debug container to a running app | Kyverno blocks it — debug containers must be non-root, read-only and unprivileged |
 
+### What Fortress does not protect
+
+Fortress raises the bar, but it is not a complete security program:
+
+- **Cluster and ArgoCD admins.** Anyone with admin access to the cluster or the ArgoCD UI can turn Fortress off. Protect these credentials and change the ArgoCD password after installing.
+- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work). Your apps cannot deploy there, but cluster admins can.
+- **`kubectl debug` access.** Debug containers are restricted, but they can still see your app's processes and network. Only give this permission to people you trust.
+- **What you delete from Git.** ArgoCD removes from the cluster whatever you remove from your app repository, including volumes and their data.
+- **Alert history.** Loki and Grafana do not use persistent storage yet, so stored alerts are lost when their pods restart. Discord alerts are not affected.
+- **Outside the cluster.** Phishing, stolen GitHub accounts, secrets committed to code and backups are out of scope.
+
 ---
 
 ## The 4 Layers of Protection
@@ -131,12 +142,13 @@ Access your tools:
 - **Release (recommended):** `git clone --branch <version> ...` keeps your cluster on that version. Changes on `main` never reach it until you update. This applies to releases from v2.0.0 onwards.
 - **Development (`main`):** every change merged into `main` reaches your cluster within about 3 minutes. The installer warns you when you install this way.
 
-To update to a new release:
+To update, install the new release the same way, in a new folder:
 ```bash
-git fetch --tags
-git checkout <new-version>
+git clone --branch <new-version> https://github.com/JoseLorenzana272/fortress-in-a-box.git fortress-<new-version>
+cd fortress-<new-version>
 ./install.sh
 ```
+The installer asks the same questions as the first time, so have your app repository URL and the same Grafana password ready. Your apps keep running during the update.
 
 To use your own fork, edit `k8s/argocd/fortress-app.yaml` in your fork and set `repoURL` to your fork and `targetRevision` to your branch or tag. Fortress reads this file from Git, so the change must be committed there.
 
