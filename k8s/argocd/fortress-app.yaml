@@ -3,6 +3,9 @@ kind: Application
 metadata:
   name: fortress-in-a-box
   namespace: argocd
+  # Never delete this app, even if its file disappears from Git
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   project: default
   source:
@@ -11,7 +14,8 @@ spec:
     path: k8s
     directory:
       recurse: true
-      exclude: '{grafana/*.json,grafana/*.yaml,examples/*,argocd/user-app.yaml}'
+      # Only these files - anything new under k8s/ is ignored
+      include: '{policies/*.yaml,argocd/fortress-app.yaml,argocd/user-project.yaml}'
   destination:
     server: https://kubernetes.default.svc
     namespace: default

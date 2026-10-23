@@ -3,6 +3,9 @@ kind: AppProject
 metadata:
   name: fortress-user-workloads
   namespace: argocd
+  # Never delete this project, even if its file disappears from Git
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   description: "User applications. Cannot deploy into platform namespaces or change cluster-wide security."
   # Allow any repo - destinations and resources below are the real limits
