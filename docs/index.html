@@ -672,7 +672,7 @@
         </a>
       </div>
       <div class="install-box">
-        <span><span class="dollar">$ </span><span class="cmd">git clone github.com/JoseLorenzana272/fortress-in-a-box && ./install.sh</span></span>
+        <span><span class="dollar">$ </span><span class="cmd">git clone --branch v2.0.0 github.com/JoseLorenzana272/fortress-in-a-box && ./install.sh</span></span>
         <button class="copy-btn" onclick="copyInstall(this)">
           COPY
         </button>
@@ -977,7 +977,7 @@
         </div>
         <div class="terminal-body">
           <span class="cmt"># Pull deployment codebase</span><br>
-          $ <span class="cmd">git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git</span><br>
+          $ <span class="cmd">git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git</span><br>
           $ <span class="cmd">cd fortress-in-a-box</span><br><br>
           <span class="cmt"># Elevate execution rights and build</span><br>
           $ <span class="cmd">chmod +x install.sh && ./install.sh</span><br><br>
@@ -1034,7 +1034,7 @@
 
 <script>
   function copyInstall(btn) {
-    const cmd = 'git clone https://github.com/JoseLorenzana272/fortress-in-a-box.git && cd fortress-in-a-box && chmod +x install.sh && ./install.sh';
+    const cmd = 'git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git && cd fortress-in-a-box && chmod +x install.sh && ./install.sh';
     navigator.clipboard.writeText(cmd).then(() => {
       btn.classList.add('copied');
       btn.innerHTML = `COPIED`;
