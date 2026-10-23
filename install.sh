@@ -13,6 +13,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Helm chart versions - these can change in each Fortress release
+KYVERNO_CHART_VERSION=3.9.0
+FALCO_CHART_VERSION=9.1.0
+LOKI_CHART_VERSION=7.3.0
+GRAFANA_CHART_VERSION=10.5.15
+ARGOCD_CHART_VERSION=10.6.1
+
 print_banner() {
     echo -e "${BLUE}"
     echo "╔════════════════════════════════════════════╗"
@@ -111,6 +118,7 @@ install_kyverno() {
     print_step "Installing Kyverno (admission control)..."
 
     helm upgrade --install kyverno kyverno/kyverno \
+        --version "$KYVERNO_CHART_VERSION" \
         --namespace kyverno \
         --create-namespace \
         --wait \
@@ -169,10 +177,13 @@ EOF
 
     if [ -n "$DISCORD_WEBHOOK" ]; then
         helm upgrade --install falco falcosecurity/falco \
+        --version "$FALCO_CHART_VERSION" \
         --namespace falco \
         --create-namespace \
         -f falco-rules.yaml \
         --set driver.kind=modern_ebpf \
+        --set collectors.containerEngine.engines.docker.enabled=false \
+        --set collectors.containerEngine.engines.podman.enabled=false \
         --set tty=true \
         --set falcosidekick.enabled=true \
         --set falcosidekick.webui.enabled=true \
@@ -186,10 +197,13 @@ EOF
         --timeout 10m
     else
         helm upgrade --install falco falcosecurity/falco \
+        --version "$FALCO_CHART_VERSION" \
         --namespace falco \
         --create-namespace \
         -f falco-rules.yaml \
         --set driver.kind=modern_ebpf \
+        --set collectors.containerEngine.engines.docker.enabled=false \
+        --set collectors.containerEngine.engines.podman.enabled=false \
         --set tty=true \
         --set falcosidekick.enabled=true \
         --set falcosidekick.webui.enabled=true \
@@ -212,6 +226,7 @@ install_monitoring() {
     print_step "Installing Loki (log storage)..."
 
     helm upgrade --install loki grafana/loki \
+        --version "$LOKI_CHART_VERSION" \
         --namespace monitoring \
         --create-namespace \
         --set loki.auth_enabled=false \
@@ -237,6 +252,7 @@ install_monitoring() {
         --dry-run=client -o yaml | kubectl apply -f -
 
     helm upgrade --install grafana grafana/grafana \
+        --version "$GRAFANA_CHART_VERSION" \
         --namespace monitoring \
         --create-namespace \
         --set admin.existingSecret=grafana-admin \
@@ -287,6 +303,7 @@ install_argocd() {
     print_step "Installing ArgoCD (GitOps engine)..."
 
     helm upgrade --install argocd argo/argo-cd \
+        --version "$ARGOCD_CHART_VERSION" \
         --namespace argocd \
         --create-namespace \
         --wait \
