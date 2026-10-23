@@ -51,6 +51,20 @@ preflight_checks() {
 }
 
 # ============================================================
+# VERSION CHECK
+# ============================================================
+check_version() {
+    FORTRESS_VERSION=$(awk '/targetRevision:/ {print $2; exit}' k8s/argocd/fortress-app.yaml 2>/dev/null || true)
+
+    if [[ "$FORTRESS_VERSION" == "HEAD" ]]; then
+        echo -e "${YELLOW}[!]${NC} You are installing the development version (main)."
+        echo -e "    For a stable install, use a release: https://github.com/JoseLorenzana272/fortress-in-a-box/releases"
+    elif [[ -n "$FORTRESS_VERSION" ]]; then
+        print_success "Installing Fortress $FORTRESS_VERSION"
+    fi
+}
+
+# ============================================================
 # COLLECT USER INPUT
 # ============================================================
 collect_input() {
@@ -344,6 +358,7 @@ print_summary() {
 # ============================================================
 print_banner
 preflight_checks
+check_version
 collect_input
 setup_helm_repos
 install_kyverno
