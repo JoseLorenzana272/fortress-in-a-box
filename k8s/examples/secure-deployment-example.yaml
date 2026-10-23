@@ -3,8 +3,8 @@
 # ============================================================
 # Use this as a template for deploying your application.
 #
-# This deployment is hardened to pass the 7 Kyverno policies that apply to
-# deployments (the 8th, disallow-insecure-ephemeral-containers, only applies
+# This deployment is hardened to pass the 8 Kyverno policies that apply to
+# deployments (the 9th, disallow-insecure-ephemeral-containers, only applies
 # to kubectl debug):
 #   - disallow-root-user
 #   - disallow-privileged-containers
@@ -13,6 +13,7 @@
 #   - require-readonly-rootfs
 #   - disallow-host-network
 #   - disallow-host-namespaces
+#   - disallow-capabilities-and-escalation
 #
 # IMPORTANT: The image tag is automatically updated by the
 # CI/CD pipeline on every push. Do not change it manually.

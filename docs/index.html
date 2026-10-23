@@ -824,6 +824,10 @@
         <div class="threat-col">Privileged debug container attached to a running app</div>
         <div class="threat-col">// REJECTED: Debug containers must be non-root, read-only and unprivileged</div>
       </div>
+      <div class="threat-row">
+        <div class="threat-col">Container requests root powers piece by piece (e.g. SYS_ADMIN)</div>
+        <div class="threat-col">// REJECTED: Added Linux capabilities and privilege escalation are forbidden</div>
+      </div>
     </div>
   </section>
 
@@ -913,6 +917,11 @@
         <span class="policy-code">RULE_08 // DEBUG_GUARD</span>
         <h3>secure-ephemeral-containers</h3>
         <p>Debug containers added with kubectl debug must be pinned, non-root, read-only, unprivileged and cannot mount the app's volumes. Closes a side door into running workloads.</p>
+      </div>
+      <div class="policy-card">
+        <span class="policy-code">RULE_09 // CAP_LOCK</span>
+        <h3>disallow-capabilities</h3>
+        <p>Containers cannot add Linux capabilities like SYS_ADMIN or escalate to root through setuid binaries. Only NET_BIND_SERVICE is allowed.</p>
       </div>
     </div>
   </section>

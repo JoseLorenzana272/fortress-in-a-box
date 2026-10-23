@@ -5,11 +5,11 @@ metadata:
 spec:
   validationActions:
     - Deny
-  # Subresource only exists at request time; background scans would need extra RBAC and find nothing
+  # Only checked on admission - this subresource can't be scanned in background
   evaluation:
     background:
       enabled: false
-  # kubectl debug adds containers through this subresource; the pod policies never see it
+  # kubectl debug adds containers here - the pod policies don't see them
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -50,7 +50,7 @@ spec:
           has(c.securityContext.readOnlyRootFilesystem) &&
           c.securityContext.readOnlyRootFilesystem == true
         )
-    # Omitted allowPrivilegeEscalation defaults to true, so it must be explicit
+    # Must be set to false - Kubernetes allows escalation by default
     - message: "FORTRESS SECURITY: Debug containers must set allowPrivilegeEscalation: false and cannot add Linux capabilities."
       expression: >
         variables.ephemeral.all(c,
@@ -63,7 +63,7 @@ spec:
             size(c.securityContext.capabilities.add) == 0
           )
         )
-    # Kubernetes never auto-mounts volumes into debug containers, so this only stops deliberate mounts
+    # Block mounting the pod's volumes - they can contain secrets
     - message: "FORTRESS SECURITY: Debug containers cannot mount the pod's volumes (they may contain secrets)."
       expression: >
         variables.ephemeral.all(c,
