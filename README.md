@@ -115,7 +115,11 @@ Access your tools:
 
   ArgoCD:
   kubectl port-forward svc/argocd-server -n argocd 8080:443
-  https://localhost:8080
+  https://localhost:8080 (username: admin)
+  To see your password, run:
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+  Tip: after your first login, change it in User Info and delete that secret:
+  kubectl -n argocd delete secret argocd-initial-admin-secret
 
   Falcosidekick UI:
   kubectl port-forward svc/falco-falcosidekick-ui -n falco 2802:2802
