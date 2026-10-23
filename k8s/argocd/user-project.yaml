@@ -5,10 +5,10 @@ metadata:
   namespace: argocd
 spec:
   description: "User applications. Cannot deploy into platform namespaces or change cluster-wide security."
-  # Any repo: the real boundary is destinations + resource kinds below
+  # Allow any repo - destinations and resources below are the real limits
   sourceRepos:
     - "*"
-  # Deny entries (!) take precedence over the '*' allow entry
+  # Block platform namespaces - "!" entries win over "*"
   destinations:
     - server: https://kubernetes.default.svc
       namespace: "!kube-system"
@@ -26,11 +26,11 @@ spec:
       namespace: "!kyverno"
     - server: https://kubernetes.default.svc
       namespace: "*"
-  # Only Namespace is needed (CreateNamespace=true); blocks ClusterRoleBindings, CRDs, cluster policies
+  # Only allow Namespace (needed by CreateNamespace=true)
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
-  # Apps must not ship their own policy exceptions, Kyverno policies or Argo objects
+  # Block Kyverno and Argo objects from user repos
   namespaceResourceBlacklist:
     - group: kyverno.io
       kind: "*"
