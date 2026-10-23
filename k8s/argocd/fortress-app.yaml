@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/JoseLorenzana272/fortress-in-a-box
-    targetRevision: HEAD
+    targetRevision: v2.0.0
     path: k8s
     directory:
       recurse: true
