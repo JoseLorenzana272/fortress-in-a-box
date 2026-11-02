@@ -230,7 +230,7 @@ Fortress enforces 9 security policies. Your deployment(s) must satisfy these 8 (
 
 | Policy | What It Requires |
 |--------|-----------------|
-| `disallow-root-user` | `runAsNonRoot: true` at pod and container level |
+| `disallow-root-user` | `runAsNonRoot: true` on the pod (or on each container) |
 | `disallow-privileged-containers` | `privileged: false` |
 | `require-resource-limits` | CPU and memory limits defined |
 | `disallow-latest-tag` | Image pinned to a specific version or SHA |

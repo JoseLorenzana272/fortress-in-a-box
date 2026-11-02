@@ -14,21 +14,16 @@ spec:
   matchConditions:
     - name: exclude-system-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
-  validations:
-    - message: "FORTRESS SECURITY: Resource limits (CPU and memory) are required!"
+  variables:
+    - name: allContainers
+      expression: "object.spec.containers + object.spec.?initContainers.orValue([])"
+    - name: failing
       expression: >
-        object.spec.containers.all(c,
-          has(c.resources) &&
-          has(c.resources.limits) &&
-          has(c.resources.limits.cpu) &&
-          has(c.resources.limits.memory)
-        ) &&
-        (
-          !has(object.spec.initContainers) ||
-          object.spec.initContainers.all(c,
-            has(c.resources) &&
-            has(c.resources.limits) &&
-            has(c.resources.limits.cpu) &&
-            has(c.resources.limits.memory)
-          )
-        )
+        variables.allContainers.filter(c, !(c.?resources.?limits.?cpu.hasValue() && c.?resources.?limits.?memory.hasValue()))
+  validations:
+    - expression: "size(variables.failing) == 0"
+      message: "FORTRESS SECURITY: Set resources.limits.cpu and resources.limits.memory on every container."
+      messageExpression: >
+        (size(variables.failing) == 1 ? 'FORTRESS SECURITY: Container "' : 'FORTRESS SECURITY: Containers "') +
+        variables.failing.map(c, c.name).join('", "') +
+        '" must set resources.limits.cpu and resources.limits.memory.'
