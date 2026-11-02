@@ -14,23 +14,16 @@ spec:
   matchConditions:
     - name: exclude-system-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
-  validations:
-    - message: "FORTRESS SECURITY: Using 'latest' or insecure image tags is not allowed. Pin your image to a specific version!"
+  variables:
+    - name: allContainers
+      expression: "object.spec.containers + object.spec.?initContainers.orValue([])"
+    - name: failing
       expression: >
-        object.spec.containers.all(c,
-          (
-            c.image.matches('^.+:[^/:@]+$') &&
-            !c.image.endsWith(':latest')
-          ) ||
-          c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')
-        ) &&
-        (
-          !has(object.spec.initContainers) ||
-          object.spec.initContainers.all(c,
-            (
-              c.image.matches('^.+:[^/:@]+$') &&
-              !c.image.endsWith(':latest')
-            ) ||
-            c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')
-          )
-        )
+        variables.allContainers.filter(c, !((c.image.matches('^.+:[^/:@]+$') && !c.image.endsWith(':latest')) || c.image.matches('^.+@sha256:[a-fA-F0-9]{64}$')))
+  validations:
+    - expression: "size(variables.failing) == 0"
+      message: "FORTRESS SECURITY: Images must use a pinned version (like nginx:1.27) or a sha256 digest, not :latest or no tag."
+      messageExpression: >
+        (size(variables.failing) == 1 ? 'FORTRESS SECURITY: Container "' : 'FORTRESS SECURITY: Containers "') +
+        variables.failing.map(c, c.name).join('", "') +
+        '" must use a pinned image version (like nginx:1.27) or a sha256 digest, not :latest or no tag.'

@@ -14,18 +14,19 @@ spec:
   matchConditions:
     - name: exclude-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
-  validations:
-    - message: "FORTRESS SECURITY: Running as root is not allowed!"
+  variables:
+    - name: allContainers
+      expression: "object.spec.containers + object.spec.?initContainers.orValue([])"
+    # Containers inherit runAsNonRoot from the pod unless they set their own
+    - name: podNonRoot
+      expression: "object.spec.?securityContext.?runAsNonRoot.orValue(false)"
+    - name: failing
       expression: >
-        object.spec.securityContext.runAsNonRoot == true &&
-        object.spec.containers.all(c,
-          has(c.securityContext) &&
-          c.securityContext.runAsNonRoot == true
-        ) &&
-        (
-          !has(object.spec.initContainers) ||
-          object.spec.initContainers.all(c,
-            has(c.securityContext) &&
-            c.securityContext.runAsNonRoot == true
-          )
-        )
+        variables.allContainers.filter(c, c.?securityContext.?runAsNonRoot.orValue(variables.podNonRoot) != true)
+  validations:
+    - expression: "size(variables.failing) == 0"
+      message: "FORTRESS SECURITY: Containers must not run as root. Set securityContext.runAsNonRoot: true on the pod (or on each container)."
+      messageExpression: >
+        (size(variables.failing) == 1 ? 'FORTRESS SECURITY: Container "' : 'FORTRESS SECURITY: Containers "') +
+        variables.failing.map(c, c.name).join('", "') +
+        '" must not run as root. Set securityContext.runAsNonRoot: true on the pod (or on each container).'

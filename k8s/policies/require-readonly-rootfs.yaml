@@ -14,19 +14,16 @@ spec:
   matchConditions:
     - name: exclude-system-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
-  validations:
-    - message: "FORTRESS SECURITY: Root filesystem must be read-only!"
+  variables:
+    - name: allContainers
+      expression: "object.spec.containers + object.spec.?initContainers.orValue([])"
+    - name: failing
       expression: >
-        object.spec.containers.all(c,
-          has(c.securityContext) &&
-          has(c.securityContext.readOnlyRootFilesystem) &&
-          c.securityContext.readOnlyRootFilesystem == true
-        ) &&
-        (
-          !has(object.spec.initContainers) ||
-          object.spec.initContainers.all(c,
-            has(c.securityContext) &&
-            has(c.securityContext.readOnlyRootFilesystem) &&
-            c.securityContext.readOnlyRootFilesystem == true
-          )
-        )
+        variables.allContainers.filter(c, c.?securityContext.?readOnlyRootFilesystem.orValue(false) != true)
+  validations:
+    - expression: "size(variables.failing) == 0"
+      message: "FORTRESS SECURITY: Set securityContext.readOnlyRootFilesystem: true. If the app writes files, mount an emptyDir for those paths."
+      messageExpression: >
+        (size(variables.failing) == 1 ? 'FORTRESS SECURITY: Container "' : 'FORTRESS SECURITY: Containers "') +
+        variables.failing.map(c, c.name).join('", "') +
+        '" must set securityContext.readOnlyRootFilesystem: true. If the app writes files, mount an emptyDir for those paths.'
