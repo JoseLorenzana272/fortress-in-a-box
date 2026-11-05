@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Learning mode only - used by argocd/fortress-app-learning.yaml
+# Every file in policies/ must be listed here, or learning mode would remove it
+resources:
+  - policies/disallow-capabilities-and-escalation.yaml
+  - policies/disallow-host-namespaces.yaml
+  - policies/disallow-host-network.yaml
+  - policies/disallow-insecure-ephemeral-containers.yaml
+  - policies/disallow-latest-tag.yaml
+  - policies/disallow-privileged-containers.yaml
+  - policies/disallow-root.yaml
+  - policies/require-readonly-rootfs.yaml
+  - policies/require-resource-limits.yaml
+  - argocd/user-project.yaml
+  - argocd/fortress-app-learning.yaml
+
+# Warn instead of block - disallow-insecure-ephemeral-containers is not listed, so kubectl debug stays blocked
+patches:
+  - target:
+      kind: ValidatingPolicy
+      name: ^(disallow-capabilities-and-escalation|disallow-host-namespaces|disallow-host-network|disallow-latest-tag|disallow-privileged-containers|disallow-root-user|require-readonly-rootfs|require-resource-limits)$
+    patch: |-
+      - op: replace
+        path: /spec/validationActions
+        value: [Audit, Warn]

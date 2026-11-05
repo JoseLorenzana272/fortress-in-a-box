@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fortress-in-a-box
+  namespace: argocd
+  # Never delete this app, even if its file disappears from Git
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/JoseLorenzana272/fortress-in-a-box
+    targetRevision: HEAD
+    path: k8s
+    # Learning mode - k8s/kustomization.yaml makes the policies warn instead of block
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
