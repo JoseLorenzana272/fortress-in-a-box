@@ -1,0 +1,298 @@
+#!/bin/bash
+set -e
+
+# colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Works as ./fortress or through a symlink in your PATH
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+ENFORCE_FILE="$SCRIPT_DIR/k8s/argocd/fortress-app.yaml"
+LEARNING_FILE="$SCRIPT_DIR/k8s/argocd/fortress-app-learning.yaml"
+# Same namespaces the user project blocks - not user workloads
+PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno)$'
+
+ok()   { echo -e "${GREEN}✓${NC} $1"; }
+bad()  { echo -e "${RED}✗${NC} $1"; PROBLEMS=$((PROBLEMS + 1)); }
+die()  { echo -e "${RED}[✗]${NC} $1"; exit 1; }
+
+# ============================================================
+# CLUSTER STATE
+# ============================================================
+app_field() {
+    kubectl get application fortress-in-a-box -n argocd -o jsonpath="$1" 2>/dev/null
+}
+
+live_mode() {
+    if ! kubectl get application fortress-in-a-box -n argocd >/dev/null 2>&1; then
+        echo "NOT INSTALLED"
+    elif [ -n "$(app_field '{.spec.source.directory.include}')" ]; then
+        echo "ENFORCE"
+    else
+        echo "LEARNING"
+    fi
+}
+
+file_value() {
+    awk -v key="$2:" '$1 == key {print $2; exit}' "$1" | tr -d "'\""
+}
+
+policy_count() {
+    ls "$SCRIPT_DIR"/k8s/policies/*.yaml | wc -l
+}
+
+actions_count() {
+    kubectl get validatingpolicies -o jsonpath='{range .items[*]}{.spec.validationActions}{"\n"}{end}' 2>/dev/null | grep -c "$1" || true
+}
+
+reports_enabled() {
+    [ "$(kubectl get deploy kyverno-reports-controller -n kyverno -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ] 2>/dev/null
+}
+
+# Pods, Jobs and ReplicaSets created by another workload - reported through their owner
+owned_objects() {
+    kubectl get pods,jobs,replicasets -A -o go-template='{{range .items}}{{if .metadata.ownerReferences}}{{.metadata.namespace}}/{{.kind}}/{{.metadata.name}}{{"\n"}}{{end}}{{end}}' 2>/dev/null
+}
+
+# One line per failing result: namespace, kind, name, policy, result, message (tab separated)
+violations() {
+    local owned
+    owned=$(owned_objects)
+    kubectl get policyreports -A -o go-template='{{range .items}}{{$ns := .scope.namespace}}{{$k := .scope.kind}}{{$n := .scope.name}}{{range .results}}{{if or (eq .result "fail") (eq .result "error")}}{{$ns}}{{"\t"}}{{$k}}{{"\t"}}{{$n}}{{"\t"}}{{.policy}}{{"\t"}}{{.result}}{{"\t"}}{{.message}}{{"\n"}}{{end}}{{end}}{{end}}' 2>/dev/null |
+        awk -F'\t' -v ns="$PLATFORM_NS" -v owned="$owned" '
+            BEGIN { n = split(owned, o, "\n"); for (i = 1; i <= n; i++) skip[o[i]] = 1 }
+            $1 ~ ns { next }
+            $2 == "ReplicaSet" { next }
+            ($1 "/" $2 "/" $3) in skip { next }
+            !seen[$0]++' | sort
+}
+
+# All user workloads that have a report, compliant or not
+workloads() {
+    local owned
+    owned=$(owned_objects)
+    kubectl get policyreports -A -o go-template='{{range .items}}{{.scope.namespace}}/{{.scope.kind}}/{{.scope.name}}{{"\n"}}{{end}}' 2>/dev/null |
+        awk -F/ -v ns="$PLATFORM_NS" -v owned="$owned" '
+            BEGIN { n = split(owned, o, "\n"); for (i = 1; i <= n; i++) skip[o[i]] = 1 }
+            $1 ~ ns || $2 == "ReplicaSet" || ($0 in skip) { next }
+            !seen[$0]++'
+}
+
+summary_line() {
+    local v total affected
+    v=$(violations)
+    total=$(workloads | grep -c . || true)
+    affected=$(echo "$v" | awk -F'\t' 'NF {print $1"/"$3}' | sort -u | grep -c . || true)
+    echo "$((total - affected)) of $total workloads compliant · $(echo "$v" | grep -c . || true) violations"
+}
+
+ready_for_enforce() {
+    reports_enabled && [ -z "$(violations)" ]
+}
+
+header() {
+    echo -e "\n${BLUE}FORTRESS // $1${NC}    context: $(kubectl config current-context 2>/dev/null)\n"
+}
+
+require_install() {
+    kubectl cluster-info >/dev/null 2>&1 || die "Cannot connect to Kubernetes cluster. Check your kubeconfig."
+    [ "$(live_mode)" != "NOT INSTALLED" ] || die "Fortress is not installed in this cluster."
+}
+
+# A folder from another version would change the policies without upgrading the rest
+require_same_version() {
+    local live folder
+    live=$(app_field '{.spec.source.targetRevision}')
+    folder=$(file_value "$ENFORCE_FILE" targetRevision)
+    [ "$live" = "$folder" ] || die "Cluster runs $live, this folder is $folder. Use the folder you installed from, or run install.sh to upgrade."
+}
+
+wait_for_mode() {
+    local want="$1" count="$2"
+    for _ in $(seq 1 60); do
+        if [ "$(actions_count "$want")" -eq "$count" ] && [ "$(app_field '{.status.sync.status}')" = "Synced" ]; then
+            return 0
+        fi
+        sleep 3
+    done
+    die "Timed out waiting for the policies to change. Check: ./fortress status"
+}
+
+# ============================================================
+# COMMANDS
+# ============================================================
+cmd_status() {
+    require_install
+    PROBLEMS=0
+    local mode expected ready
+    mode=$(live_mode)
+    expected=$(policy_count)
+    header "STATUS"
+
+    local version
+    version=$(app_field '{.spec.source.targetRevision}')
+    [ "$version" = "HEAD" ] && version="HEAD (development version)"
+    echo "Version     $version"
+    if [ "$mode" = "LEARNING" ]; then
+        echo -e "Mode        ${YELLOW}LEARNING${NC}  ($(actions_count Audit) policies warn, debug containers blocked)"
+    else
+        echo -e "Mode        ${GREEN}ENFORCE${NC}   ($(actions_count Deny) policies block)"
+    fi
+
+    printf "Guard       "
+    if [ "$(app_field '{.status.sync.status}')/$(app_field '{.status.health.status}')" = "Synced/Healthy" ]; then
+        ok "Synced / Healthy"
+    else
+        bad "$(app_field '{.status.sync.status}') / $(app_field '{.status.health.status}')"
+    fi
+
+    printf "            "
+    local file="$ENFORCE_FILE"
+    [ "$mode" = "LEARNING" ] && file="$LEARNING_FILE"
+    if [ "$(app_field '{.spec.syncPolicy.automated.selfHeal}')" = "true" ] &&
+       [ "$(app_field '{.spec.syncPolicy.automated.prune}')" = "true" ] &&
+       [ "$(app_field '{.spec.source.repoURL}')" = "$(file_value "$file" repoURL)" ] &&
+       [ "$(app_field '{.spec.source.path}')" = "$(file_value "$file" path)" ] &&
+       [ "$(app_field '{.spec.source.directory.include}')" = "$(file_value "$file" include)" ]; then
+        ok "unchanged"
+    else
+        bad "modified - it no longer matches $(basename "$file"). Someone may have disarmed Fortress."
+    fi
+
+    ready=$(kubectl get validatingpolicies --no-headers 2>/dev/null | awk '$3 == "true"' | wc -l)
+    printf "Policies    "
+    [ "$ready" -eq "$expected" ] && ok "$ready/$expected ready" || bad "$ready/$expected ready"
+
+    printf "Isolation   "
+    kubectl get appproject fortress-user-workloads -n argocd >/dev/null 2>&1 && ok "user project active" || bad "user project missing"
+
+    printf "Falco       "
+    [ "$(kubectl get ds falco -n falco -o jsonpath='{.status.numberReady}' 2>/dev/null)" -ge 1 ] 2>/dev/null && ok "running" || bad "not running"
+
+    printf "Kyverno     "
+    if reports_enabled; then
+        ok "running (reports enabled)"
+        echo -e "\nAudit       $(summary_line)"
+        if [ "$mode" = "LEARNING" ]; then
+            ready_for_enforce && echo -e "Ready for enforce: ${GREEN}YES${NC}  → ./fortress mode enforce" \
+                              || echo -e "Ready for enforce: ${RED}NO${NC}   → ./fortress audit report"
+        fi
+    else
+        bad "reports controller not running - workloads cannot be audited"
+    fi
+    echo
+    [ "$PROBLEMS" -eq 0 ]
+}
+
+cmd_audit_report() {
+    require_install
+    header "SECURITY AUDIT"
+    reports_enabled || die "Kyverno reports controller is not running - nothing to audit."
+    local v
+    v=$(violations)
+    echo -e "Mode: $(live_mode)\n"
+    if [ -z "$v" ]; then
+        ok "All $(workloads | grep -c . || true) workloads meet the $(policy_count) policies."
+        echo
+        return 0
+    fi
+    # Column widths fit the longest value
+    printf 'Namespace\t-\tWorkload\tPolicy\tStatus\n%s\n' "$v" | awk -F'\t' '
+        { rows[NR] = $0; for (i = 1; i <= 5; i++) if (length($i) > w[i]) w[i] = length($i) }
+        END {
+            for (r = 1; r <= NR; r++) {
+                split(rows[r], c, "\t")
+                printf "%-" w[1] + 2 "s%-" w[3] + 2 "s%-" w[4] + 2 "s%s\n", c[1], c[3], c[4], (r == 1 ? c[5] : toupper(c[5]))
+                if (r == 1) { line = ""; for (i = 0; i < w[1] + w[3] + w[4] + 12; i++) line = line "─"; print line }
+            }
+        }'
+    echo -e "\nHow to fix:"
+    echo "$v" | awk -F'\t' '{ w = $1 "/" $3; if (w != last) { print "  " w; last = w } sub(/^FORTRESS SECURITY: /, "", $6); print "    • " $6 }'
+    echo -e "\nTotal violations: $(echo "$v" | grep -c .) · Workloads affected: $(echo "$v" | awk -F'\t' '{print $1"/"$3}' | sort -u | wc -l) · Policies evaluated: $(policy_count)"
+    echo -e "Reports can take up to a minute to refresh after a change.\n"
+}
+
+cmd_audit_status() {
+    require_install
+    reports_enabled || die "Kyverno reports controller is not running - nothing to audit."
+    local line
+    line="$(live_mode) · $(summary_line)"
+    if [ "$(live_mode)" = "LEARNING" ]; then
+        ready_for_enforce && line="$line · ready for enforce: YES" || line="$line · ready for enforce: NO"
+    fi
+    echo "$line"
+}
+
+cmd_mode_enforce() {
+    require_install
+    header "MODE CHANGE"
+    [ "$(live_mode)" = "ENFORCE" ] && { ok "Already in enforce mode."; return 0; }
+    require_same_version
+    reports_enabled || die "Kyverno reports controller is not running - cannot check that your apps would keep working."
+
+    local v
+    v=$(violations)
+    if [ -n "$v" ]; then
+        echo "These workloads would stop working after their next restart in enforce mode:"
+        echo "$v" | awk -F'\t' '{print $1"/"$3}' | sort | uniq -c | awk '{printf "  %s  (%d violation%s)\n", $2, $1, ($1 > 1 ? "s" : "")}'
+        if [ "$FORCE" != "true" ]; then
+            echo -e "\nFix them first:  ./fortress audit report\nNothing was changed."
+            exit 1
+        fi
+        echo -e "\n${RED}--force: these apps will NOT be able to restart until they are fixed.${NC}"
+        read -r -p "Type 'enforce' to continue: " CONFIRM || true
+        [ "$CONFIRM" = "enforce" ] || { echo "Nothing was changed."; exit 1; }
+    fi
+
+    kubectl apply -f "$ENFORCE_FILE" >/dev/null
+    echo "Switching to enforce mode..."
+    wait_for_mode '"Deny"' "$(policy_count)"
+    ok "Enforce mode is active. Run: ./fortress status"
+}
+
+cmd_mode_learning() {
+    require_install
+    header "MODE CHANGE"
+    [ "$(live_mode)" = "LEARNING" ] && { ok "Already in learning mode."; return 0; }
+    require_same_version
+    echo "Learning mode: most policies will only warn instead of blocking."
+    echo "Still active: debug container blocking, namespace isolation, Falco alerts and self-healing."
+    read -r -p "Switch to learning mode? [y/N] " CONFIRM || true
+    [[ "$CONFIRM" =~ ^[Yy] ]] || { echo "Nothing was changed."; exit 0; }
+
+    kubectl apply -f "$LEARNING_FILE" >/dev/null
+    echo "Switching to learning mode..."
+    wait_for_mode Audit "$(( $(policy_count) - 1 ))"
+    ok "Learning mode is active. When your apps are fixed, run: ./fortress mode enforce"
+}
+
+usage() {
+    cat <<EOF
+Fortress in a Box CLI
+
+  fortress status               Health, mode and protection summary
+  fortress audit report         What does not meet the policies, and how to fix it
+  fortress audit status         One-line audit summary
+  fortress mode enforce         Block insecure workloads (refuses if apps would break)
+  fortress mode enforce --force Switch anyway, after typing 'enforce'
+  fortress mode learning        Only warn, while you fix your apps
+EOF
+}
+
+# ============================================================
+# MAIN
+# ============================================================
+FORCE=false
+[ "${3:-}" = "--force" ] && FORCE=true
+
+case "${1:-} ${2:-}" in
+    "status ")       cmd_status ;;
+    "audit report")  cmd_audit_report ;;
+    "audit status")  cmd_audit_status ;;
+    "mode enforce")  cmd_mode_enforce ;;
+    "mode learning") cmd_mode_learning ;;
+    *)               usage ;;
+esac
