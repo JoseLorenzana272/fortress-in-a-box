@@ -13,7 +13,7 @@ spec:
         resources: ["pods"]
   matchConditions:
     - name: exclude-namespaces
-      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd'"
+      expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd' && !request.namespace.startsWith('gke-managed-') && request.namespace != 'gmp-system' && request.namespace != 'gmp-public'"
   variables:
     - name: allContainers
       expression: "object.spec.containers + object.spec.?initContainers.orValue([])"

@@ -15,7 +15,7 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Same namespaces the policies skip - not user workloads
-PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno)$'
+PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno|gke-managed-.*|gmp-system|gmp-public)$'
 
 # Helm chart versions - these can change in each Fortress release
 KYVERNO_CHART_VERSION=3.9.0

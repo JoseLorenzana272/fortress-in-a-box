@@ -27,6 +27,13 @@ spec:
       namespace: "!falco"
     - server: https://kubernetes.default.svc
       namespace: "!kyverno"
+    # GKE managed namespaces
+    - server: https://kubernetes.default.svc
+      namespace: "!gke-managed-*"
+    - server: https://kubernetes.default.svc
+      namespace: "!gmp-system"
+    - server: https://kubernetes.default.svc
+      namespace: "!gmp-public"
     - server: https://kubernetes.default.svc
       namespace: "*"
   # Only allow Namespace (needed by CreateNamespace=true)
