@@ -57,10 +57,12 @@ The pattern is always the same: small team, critical data, zero security budget.
 Fortress raises the bar, but it is not a complete security program:
 
 - **Cluster and ArgoCD admins.** Anyone with admin access to the cluster or the ArgoCD UI can turn Fortress off. Protect these credentials and change the ArgoCD password after installing.
-- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work). Your apps cannot deploy there, but cluster admins can.
+- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work), nor are GKE's managed namespaces (`gke-managed-*`, `gmp-system`, `gmp-public`). Your apps cannot deploy there, but cluster admins can. Other platforms (for example Rancher, EKS or AKS) may run their own system components in other namespaces: they appear in `fortress audit report`, and `fortress mode enforce` refuses until they are fixed or excluded.
+- **Infrastructure tools that need privileges.** Most tools pass once you configure them (for example resource limits in their Helm values; `fortress audit report` shows what to set). Tools that must run privileged, such as storage drivers, VPNs or node agents, cannot meet the policies: keep Fortress in learning mode, or exclude their namespace in your copy of the policies.
 - **`kubectl debug` access.** Debug containers are restricted, but they can still see your app's processes and network. Only give this permission to people you trust.
 - **What you delete from Git.** ArgoCD removes from the cluster whatever you remove from your app repository, including volumes and their data.
 - **Alert history.** Loki and Grafana do not use persistent storage yet, so stored alerts are lost when their pods restart. Discord alerts are not affected.
+- **Learning mode.** While Fortress is in learning mode, the pod policies only warn, so insecure workloads are allowed. Use it while you fix your apps, then switch to enforce.
 - **Outside the cluster.** Phishing, stolen GitHub accounts, secrets committed to code and backups are out of scope.
 
 ---
@@ -102,7 +104,7 @@ Falco needs privileged pods and a Linux kernel 5.8+ (most clusters; not GKE Auto
 
 ## Installation
 ```bash
-git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git
+git clone --branch v2.1.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git
 cd fortress-in-a-box
 chmod +x install.sh
 ./install.sh
@@ -113,6 +115,8 @@ The installer will ask you for:
 2. Your Discord webhook URL (optional but recommended)
 3. The local path to your application's code (to auto-inject the Trivy workflow)
 4. A Grafana admin password
+5. Learning or enforce mode (it recommends one, see [Learning and enforce mode](#learning-and-enforce-mode))
+6. Whether to install the `fortress` command
 
 In about 5 minutes, you will see:
 ```
@@ -137,6 +141,10 @@ Access your tools:
   Falcosidekick UI:
   kubectl port-forward svc/falco-falcosidekick-ui -n falco 2802:2802
   http://localhost:2802
+
+  Fortress mode: LEARNING (policies warn, nothing is blocked yet)
+  See what to fix:          fortress audit report
+  When everything is fixed: fortress mode enforce
 ```
 
 ### Versions and updates
@@ -156,13 +164,61 @@ To use your own fork, edit `k8s/argocd/fortress-app.yaml` in your fork and set `
 
 ---
 
+## Learning and enforce mode
+
+| Mode | Insecure workloads |
+|------|--------------------|
+| **Learning** | Allowed. You get a warning when you deploy them, and they appear in `fortress audit report`. |
+| **Enforce** | Blocked. |
+
+In both modes, debug containers stay blocked, apps cannot deploy into platform namespaces, Falco keeps alerting and ArgoCD keeps restoring Fortress.
+
+The installer recommends **learning** if your cluster already runs apps, so nothing breaks while you fix them, and **enforce** if it is empty.
+
+To move from learning to enforce:
+```bash
+fortress audit report    # what to fix, with instructions
+# fix your manifests and redeploy
+fortress mode enforce    # refuses while any app would break
+```
+In enforce mode, an app that does not meet the policies keeps running but cannot start again after a restart. That is why `fortress mode enforce` refuses until everything is fixed. `fortress mode enforce --force` switches anyway after you type `enforce`.
+
+### The `fortress` command
+
+The installer can add `fortress` to your PATH (`~/.local/bin`). Otherwise, run `./fortress` from this folder.
+
+| Command | What it does |
+|---------|--------------|
+| `fortress status` | Mode, version and health of the policies, isolation, Falco and Kyverno. Warns if someone modified Fortress. |
+| `fortress audit report` | Workloads that do not meet the policies, and how to fix each one |
+| `fortress audit status` | One-line summary |
+| `fortress mode enforce` | Switch to enforce mode (refuses if an app would break) |
+| `fortress mode learning` | Switch to learning mode (asks first) |
+
+```
+$ fortress audit report
+Namespace    Workload   Policy                   Status
+───────────────────────────────────────────────────────
+radio-libre  wordpress  disallow-latest-tag      FAIL
+radio-libre  wordpress  require-resource-limits  FAIL
+
+How to fix:
+  radio-libre/wordpress
+    • Container "wordpress" must use a pinned image version (like nginx:1.27) or a sha256 digest, not :latest or no tag.
+    • Container "wordpress" must set resources.limits.cpu and resources.limits.memory.
+```
+
+Use the CLI from the folder you installed from. It refuses to change modes if that folder is a different Fortress version than the cluster.
+
+---
+
 ## Verifying It Works
 
 **Test 1 — Kyverno blocks a bad deployment:**
 ```bash
-# This should be DENIED
+# This should be DENIED in enforce mode (in learning mode you get warnings instead)
 kubectl run hacker-pod --image=nginx:latest
-# Expected: FORTRESS SECURITY: Using 'latest' image tag is not allowed!
+# Expected: FORTRESS SECURITY: Container "hacker-pod" ... (the message says what to fix)
 ```
 
 **Test 2 — Falco detects a shell in a container:**
@@ -175,15 +231,22 @@ kubectl exec -it <your-pod-name> -- /bin/sh
 
 # Expected: Alert fires in Discord and Grafana within seconds
 ```
+On Linux hosts with a recent systemd, Falco may occasionally report `systemd-executor` reading `/etc/shadow` or `/etc/pam.d` files when a service starts. This is expected; Fortress keeps the rule active so that a real attempt is never silenced.
 
 **Test 3 — ArgoCD restores deleted policies:**
 ```bash
 # Delete a security policy
 kubectl delete validatingpolicy disallow-root-user
 
-# Wait 3 minutes, then check
+# Wait a few seconds, then check
 kubectl get validatingpolicy disallow-root-user
 # Expected: Policy is back — ArgoCD restored it from Git
+```
+
+**Test 4 — Everything at a glance:**
+```bash
+fortress status
+# Expected: every line marked ✓
 ```
 
 ---
@@ -253,7 +316,7 @@ volumes:
 
 ### Debugging a running pod (`kubectl debug`)
 
-The `disallow-insecure-ephemeral-containers` policy rejects plain `kubectl debug` (it runs as root by default). Save this profile as `fortress-debug.json`:
+The `disallow-insecure-ephemeral-containers` policy rejects plain `kubectl debug` (it runs as root by default), in learning mode too. Save this profile as `fortress-debug.json`:
 
 ```json
 {

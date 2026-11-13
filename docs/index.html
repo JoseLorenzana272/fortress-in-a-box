@@ -557,6 +557,7 @@
     .terminal-body .cmd { color: var(--text); }
     .terminal-body .cmt { color: var(--text-dark); }
     .terminal-body .success { color: var(--green); font-weight: 700; }
+    .terminal-body .fail { color: var(--red); font-weight: 700; }
 
     /* CTA (TACTICAL ACTION CARD) */
     .cta-container {
@@ -672,7 +673,7 @@
         </a>
       </div>
       <div class="install-box">
-        <span><span class="dollar">$ </span><span class="cmd">git clone --branch v2.0.0 github.com/JoseLorenzana272/fortress-in-a-box && ./install.sh</span></span>
+        <span><span class="dollar">$ </span><span class="cmd">git clone --branch v2.1.0 github.com/JoseLorenzana272/fortress-in-a-box && ./install.sh</span></span>
         <button class="copy-btn" onclick="copyInstall(this)">
           COPY
         </button>
@@ -769,7 +770,7 @@
       <div class="stack-layer">
         <span class="stack-num">[L_04]</span>
         <span class="stack-title">GitOps Recovery</span>
-        <p class="stack-desc">Maintains Git as the strict state of truth. Automatically rolls back unauthorized configuration drifts or deletions inside 180 seconds.</p>
+        <p class="stack-desc">Maintains Git as the strict state of truth. Restores deleted or weakened defenses from Git within seconds.</p>
         <span class="stack-tag">ArgoCD Core</span>
       </div>
     </div>
@@ -926,11 +927,73 @@
     </div>
   </section>
 
+  <!-- LEARNING MODE SECTION -->
+  <section id="learning">
+    <div class="section-header">
+      <div>
+        <span class="section-meta">[SECTION 06 / LEARNING MODE]</span>
+        <h2>Learn First, Then Enforce</h2>
+      </div>
+      <div>
+        <p class="section-desc">Already running apps? Start in learning mode: Fortress shows every problem and how to fix it, without breaking anything. Switch to enforce when you are ready.</p>
+      </div>
+    </div>
+
+    <div class="install-layout">
+      <div class="steps-container">
+        <div class="step-item">
+          <span class="step-number">[LEARN]</span>
+          <div>
+            <h3 class="step-title">Learning Mode</h3>
+            <p class="step-desc">Insecure workloads are allowed, but every deploy shows a warning that names the container and the line to change.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-number">[AUDIT]</span>
+          <div>
+            <h3 class="step-title">One Report, Every Problem</h3>
+            <p class="step-desc"><code style="font-family:var(--mono);">fortress audit report</code> lists what does not meet the policies across the cluster, with instructions to fix each one.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-number">[ENFORCE]</span>
+          <div>
+            <h3 class="step-title">Safe Switch to Enforce</h3>
+            <p class="step-desc"><code style="font-family:var(--mono);">fortress mode enforce</code> refuses while any app would stop working after a restart. Debug containers, namespace isolation and Falco stay active in both modes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal-container" style="min-width:0;">
+        <div class="terminal-header">
+          <span class="terminal-title">fortress CLI</span>
+          <div class="terminal-dot"></div>
+        </div>
+        <div class="terminal-body" style="white-space:pre; overflow-x:auto;">$ <span class="cmd">fortress audit report</span>
+
+<span class="cmt">Workload   Policy               Status</span>
+wordpress  disallow-latest-tag  <span class="fail">FAIL</span>
+wordpress  require-limits       <span class="fail">FAIL</span>
+
+<span class="cmt">How to fix:</span>
+ • Use a pinned image (nginx:1.27)
+ • Set resources.limits.cpu/memory
+
+$ <span class="cmd">fortress mode enforce</span>
+<span class="fail">1 app would break. Nothing changed.</span>
+
+<span class="cmt"># fix, redeploy, then:</span>
+$ <span class="cmd">fortress mode enforce</span>
+<span class="success">✓ Enforce mode is active.</span></div>
+      </div>
+    </div>
+  </section>
+
   <!-- INSTALLATION SECTION -->
   <section id="install">
     <div class="section-header">
       <div>
-        <span class="section-meta">[SECTION 06 / DEPLOYMENT]</span>
+        <span class="section-meta">[SECTION 07 / DEPLOYMENT]</span>
         <h2>Setup Instructions</h2>
       </div>
       <div>
@@ -958,7 +1021,7 @@
           <span class="step-number">[03]</span>
           <div>
             <h3 class="step-title">Execute Interactive Installer</h3>
-            <p class="step-desc">Initialize the interactive automation script. The setup engine will request your target Git repo config, optional alerts configurations, and system passwords.</p>
+            <p class="step-desc">Initialize the interactive automation script. The setup engine will request your target Git repo config, optional alerts configurations, system passwords, and whether to start in learning or enforce mode.</p>
           </div>
         </div>
         <div class="step-item">
@@ -977,7 +1040,7 @@
         </div>
         <div class="terminal-body">
           <span class="cmt"># Pull deployment codebase</span><br>
-          $ <span class="cmd">git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git</span><br>
+          $ <span class="cmd">git clone --branch v2.1.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git</span><br>
           $ <span class="cmd">cd fortress-in-a-box</span><br><br>
           <span class="cmt"># Elevate execution rights and build</span><br>
           $ <span class="cmd">chmod +x install.sh && ./install.sh</span><br><br>
@@ -993,7 +1056,7 @@
   <section id="author">
     <div class="section-header">
       <div>
-        <span class="section-meta">[SECTION 07 / BUILT BY]</span>
+        <span class="section-meta">[SECTION 08 / BUILT BY]</span>
         <h2>Created by<br>José Lorenzana</h2>
       </div>
       <div>
@@ -1004,6 +1067,7 @@
     <div style="display:flex; gap:1rem; flex-wrap:wrap;">
       <a href="https://github.com/JoseLorenzana272" target="_blank" rel="noopener" class="btn-ghost">GITHUB</a>
       <a href="https://www.linkedin.com/in/jose-lorenzana-medina/" target="_blank" rel="noopener" class="btn-ghost">LINKEDIN</a>
+      <a href="https://jose-lorenzana-portfolio.vercel.app/" target="_blank" rel="noopener" class="btn-ghost">PORTFOLIO</a>
     </div>
   </section>
 
@@ -1034,7 +1098,7 @@
 
 <script>
   function copyInstall(btn) {
-    const cmd = 'git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git && cd fortress-in-a-box && chmod +x install.sh && ./install.sh';
+    const cmd = 'git clone --branch v2.1.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git && cd fortress-in-a-box && chmod +x install.sh && ./install.sh';
     navigator.clipboard.writeText(cmd).then(() => {
       btn.classList.add('copied');
       btn.innerHTML = `COPIED`;
