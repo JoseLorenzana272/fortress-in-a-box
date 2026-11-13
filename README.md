@@ -230,6 +230,7 @@ kubectl exec -it <your-pod-name> -- /bin/sh
 
 # Expected: Alert fires in Discord and Grafana within seconds
 ```
+On Linux hosts with a recent systemd, Falco may occasionally report `systemd-executor` reading `/etc/shadow` or `/etc/pam.d` files when a service starts. This is expected; Fortress keeps the rule active so that a real attempt is never silenced.
 
 **Test 3 — ArgoCD restores deleted policies:**
 ```bash
