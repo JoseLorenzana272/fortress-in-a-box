@@ -13,6 +13,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Same namespaces the policies skip - not user workloads
+PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno)$'
+
 # Helm chart versions - these can change in each Fortress release
 KYVERNO_CHART_VERSION=3.9.0
 FALCO_CHART_VERSION=9.1.0
@@ -100,6 +104,41 @@ collect_input() {
     if [[ -z "$GRAFANA_PASSWORD" ]]; then
         print_error "Grafana admin password cannot be empty."
     fi
+
+    choose_mode
+
+    # Enter or no input installs the command
+    read -r -p "Install the 'fortress' command so you can run it from anywhere? [Y/n] " ANSWER || true
+    INSTALL_CLI=yes
+    if [[ "$ANSWER" =~ ^[Nn] ]]; then INSTALL_CLI=no; fi
+}
+
+# ============================================================
+# CHOOSE MODE
+# ============================================================
+# Deployments, StatefulSets, DaemonSets, CronJobs and standalone pods outside platform namespaces
+count_workloads() {
+    {
+        kubectl get deployments,statefulsets,daemonsets,cronjobs -A -o go-template='{{range .items}}{{.metadata.namespace}}{{"\n"}}{{end}}' 2>/dev/null
+        kubectl get pods -A -o go-template='{{range .items}}{{if not .metadata.ownerReferences}}{{.metadata.namespace}}{{"\n"}}{{end}}{{end}}' 2>/dev/null
+    } | grep -cvE "$PLATFORM_NS|^$" || true
+}
+
+choose_mode() {
+    local workloads
+    workloads=$(count_workloads)
+
+    # Enter or no input accepts the recommended mode
+    if [ "$workloads" -gt 0 ]; then
+        echo -e "Found $workloads existing workloads in this cluster."
+        read -r -p "Start in learning mode? Policies will only warn, so nothing breaks while you fix them. [Y/n] " ANSWER || true
+        FORTRESS_MODE=learning
+        if [[ "$ANSWER" =~ ^[Nn] ]]; then FORTRESS_MODE=enforce; fi
+    else
+        read -r -p "Start in enforce mode? Recommended for new clusters: insecure workloads are blocked from day one. [Y/n] " ANSWER || true
+        FORTRESS_MODE=enforce
+        if [[ "$ANSWER" =~ ^[Nn] ]]; then FORTRESS_MODE=learning; fi
+    fi
 }
 
 # ============================================================
@@ -130,10 +169,14 @@ install_kyverno() {
         --wait \
         --timeout 10m
 
-    print_step "Applying security policies..."
-    kubectl apply -f k8s/policies/
-
-    print_success "Kyverno installed. Security policies active."
+    if [ "$FORTRESS_MODE" = "enforce" ]; then
+        print_step "Applying security policies..."
+        kubectl apply -f k8s/policies/
+        print_success "Kyverno installed. Security policies active."
+    else
+        # Blocking policies here could break existing apps before learning mode starts
+        print_success "Kyverno installed. Policies will be created in learning mode with ArgoCD."
+    fi
 }
 
 # ============================================================
@@ -317,8 +360,12 @@ install_argocd() {
 
     print_step "Configuring ArgoCD applications..."
     
-    # Apply fortress to ArgoCD
-    kubectl apply -f k8s/argocd/fortress-app.yaml
+    # Apply fortress to ArgoCD in the chosen mode
+    if [ "$FORTRESS_MODE" = "enforce" ]; then
+        kubectl apply -f k8s/argocd/fortress-app.yaml
+    else
+        kubectl apply -f k8s/argocd/fortress-app-learning.yaml
+    fi
     
     # Restricted project must exist before the user app references it
     kubectl apply -f k8s/argocd/user-project.yaml
@@ -351,6 +398,33 @@ scaffold_trivy() {
 }
 
 # ============================================================
+# INSTALL FORTRESS COMMAND
+# ============================================================
+install_cli() {
+    FORTRESS_CMD="./fortress"
+    [ "$INSTALL_CLI" = "yes" ] || return 0
+
+    local link="$HOME/.local/bin/fortress"
+    mkdir -p "$HOME/.local/bin"
+
+    # Never replace a file or link that is not a Fortress CLI
+    if [ -e "$link" ] && { [ ! -L "$link" ] || [ "$(basename "$(readlink "$link")")" != "fortress" ]; }; then
+        echo -e "${YELLOW}[!]${NC} $link already exists and is not a Fortress link. Left it untouched; use ./fortress instead."
+        return 0
+    fi
+
+    ln -sfn "$SCRIPT_DIR/fortress" "$link"
+    case ":$PATH:" in
+        *":$HOME/.local/bin:"*)
+            FORTRESS_CMD="fortress"
+            print_success "Installed the 'fortress' command." ;;
+        *)
+            echo -e "${YELLOW}[!]${NC} Installed $link, but ~/.local/bin is not in your PATH. Add it with:"
+            echo -e "    echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc" ;;
+    esac
+}
+
+# ============================================================
 # PRINT FINAL SUMMARY
 # ============================================================
 print_summary() {
@@ -373,6 +447,14 @@ print_summary() {
     echo -e "  ${BLUE}Falcosidekick UI:${NC}"
     echo -e "  kubectl port-forward svc/falco-falcosidekick-ui -n falco 2802:2802"
     echo -e "  http://localhost:2802\n"
+    if [ "$FORTRESS_MODE" = "enforce" ]; then
+        echo -e "  ${BLUE}Fortress mode:${NC} ENFORCE (insecure workloads are blocked)"
+        echo -e "  Check anytime:  $FORTRESS_CMD status\n"
+    else
+        echo -e "  ${BLUE}Fortress mode:${NC} LEARNING (policies warn, nothing is blocked yet)"
+        echo -e "  See what to fix:          $FORTRESS_CMD audit report"
+        echo -e "  When everything is fixed: $FORTRESS_CMD mode enforce\n"
+    fi
     echo -e "${YELLOW}Your cluster is now protected. Stay safe.${NC}\n"
 }
 
@@ -389,4 +471,5 @@ install_monitoring
 install_falco
 install_argocd
 scaffold_trivy
+install_cli
 print_summary

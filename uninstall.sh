@@ -80,5 +80,11 @@ print_step "Removing dangling ClusterRoles..."
 kubectl delete clusterrole kyverno:webhook --ignore-not-found || true
 kubectl delete clusterrolebinding kyverno:webhook --ignore-not-found || true
 
+# Only remove the fortress command if it points to this folder
+if [ "$(readlink -f "$HOME/.local/bin/fortress" 2>/dev/null)" = "$SCRIPT_DIR/fortress" ]; then
+    rm -f "$HOME/.local/bin/fortress"
+    print_success "Removed the 'fortress' command."
+fi
+
 print_success "Fortress was removed from $CONTEXT."
 echo -e "ArgoCD CRDs are kept by Helm on purpose. Remove them manually if you no longer need them."
