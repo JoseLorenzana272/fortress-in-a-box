@@ -27,7 +27,7 @@ ARGOCD_CHART_VERSION=10.6.1
 print_banner() {
     echo -e "${BLUE}"
     echo "╔════════════════════════════════════════════╗"
-    echo "║         FORTRESS IN A BOX v2.0             ║"
+    echo "║         FORTRESS IN A BOX v2.1             ║"
     echo "║   Enterprise Security for Those Who Need   ║"
     echo "║              It Most :)                    ║"
     echo "╚════════════════════════════════════════════╝"

@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/JoseLorenzana272/fortress-in-a-box
-    targetRevision: HEAD
+    targetRevision: v2.1.0
     # No source type set: Argo CD finds k8s/kustomization.yaml and builds learning mode from it.
     # Do not add "kustomize: {}" - Kubernetes drops empty fields and the app would never be in sync.
     path: k8s
