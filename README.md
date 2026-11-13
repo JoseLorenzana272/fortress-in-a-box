@@ -104,7 +104,7 @@ Falco needs privileged pods and a Linux kernel 5.8+ (most clusters; not GKE Auto
 
 ## Installation
 ```bash
-git clone --branch v2.0.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git
+git clone --branch v2.1.0 https://github.com/JoseLorenzana272/fortress-in-a-box.git
 cd fortress-in-a-box
 chmod +x install.sh
 ./install.sh
