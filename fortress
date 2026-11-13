@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 ENFORCE_FILE="$SCRIPT_DIR/k8s/argocd/fortress-app.yaml"
 LEARNING_FILE="$SCRIPT_DIR/k8s/argocd/fortress-app-learning.yaml"
 # Same namespaces the user project blocks - not user workloads
-PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno)$'
+PLATFORM_NS='^(kube-system|kube-public|kube-node-lease|argocd|monitoring|falco|kyverno|gke-managed-.*|gmp-system|gmp-public)$'
 # Hints show "fortress" when the installed command points to this script
 CMD="./fortress"
 [ "$(readlink -f "$(command -v fortress 2>/dev/null)" 2>/dev/null)" = "$SCRIPT_DIR/fortress" ] && CMD="fortress"
