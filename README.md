@@ -57,7 +57,8 @@ The pattern is always the same: small team, critical data, zero security budget.
 Fortress raises the bar, but it is not a complete security program:
 
 - **Cluster and ArgoCD admins.** Anyone with admin access to the cluster or the ArgoCD UI can turn Fortress off. Protect these credentials and change the ArgoCD password after installing.
-- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work). Your apps cannot deploy there, but cluster admins can.
+- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work), nor are GKE's managed namespaces (`gke-managed-*`, `gmp-system`, `gmp-public`). Your apps cannot deploy there, but cluster admins can.
+- **Infrastructure tools that need privileges.** Most tools pass once you configure them (for example resource limits in their Helm values; `fortress audit report` shows what to set). Tools that must run privileged, such as storage drivers, VPNs or node agents, cannot meet the policies: keep Fortress in learning mode, or exclude their namespace in your copy of the policies.
 - **`kubectl debug` access.** Debug containers are restricted, but they can still see your app's processes and network. Only give this permission to people you trust.
 - **What you delete from Git.** ArgoCD removes from the cluster whatever you remove from your app repository, including volumes and their data.
 - **Alert history.** Loki and Grafana do not use persistent storage yet, so stored alerts are lost when their pods restart. Discord alerts are not affected.
