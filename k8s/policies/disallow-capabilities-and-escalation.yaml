@@ -14,6 +14,14 @@ spec:
   matchConditions:
     - name: exclude-system-namespaces
       expression: "request.namespace != 'falco' && request.namespace != 'monitoring' && request.namespace != 'kyverno' && request.namespace != 'argocd' && !request.namespace.startsWith('gke-managed-') && request.namespace != 'gmp-system' && request.namespace != 'gmp-public'"
+    # Namespaces added with "fortress allow" - not for what user apps deploy through Argo CD
+    # Optional syntax (object.?metadata) on purpose: autogen rewrites object.metadata to the pod template
+    - name: skip-allowed-namespaces
+      expression: >
+        !(request.namespace in resource.Get('v1', 'configmaps', 'kyverno', 'fortress-exceptions').?data.orValue({}) &&
+        (request.?userInfo.?username.orValue('') != 'system:serviceaccount:argocd:argocd-application-controller' ||
+        (object.?metadata.?annotations[?'argocd.argoproj.io/tracking-id'].orValue('') == '' ? 'fortress-user-workloads' :
+        resource.Get('argoproj.io/v1alpha1', 'applications', 'argocd', object.?metadata.?annotations[?'argocd.argoproj.io/tracking-id'].orValue('').split(':')[0]).?spec.?project.orValue('fortress-user-workloads')) != 'fortress-user-workloads'))
   # Debug containers (kubectl debug) are checked in disallow-insecure-ephemeral-containers
   variables:
     - name: allContainers

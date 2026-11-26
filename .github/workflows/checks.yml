@@ -1,0 +1,18 @@
+name: Checks
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  namespaces:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Platform namespaces match in every file
+        run: .github/scripts/check-namespaces.sh

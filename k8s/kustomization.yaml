@@ -13,6 +13,7 @@ resources:
   - policies/disallow-root.yaml
   - policies/require-readonly-rootfs.yaml
   - policies/require-resource-limits.yaml
+  - kyverno/argo-apps-reader.yaml
   - argocd/user-project.yaml
   - argocd/fortress-app-learning.yaml
 
