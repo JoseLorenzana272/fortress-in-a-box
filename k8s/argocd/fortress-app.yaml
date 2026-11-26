@@ -15,7 +15,7 @@ spec:
     directory:
       recurse: true
       # Only these files - anything new under k8s/ is ignored
-      include: '{policies/*.yaml,argocd/fortress-app.yaml,argocd/user-project.yaml}'
+      include: '{policies/*.yaml,kyverno/*.yaml,argocd/fortress-app.yaml,argocd/user-project.yaml}'
   destination:
     server: https://kubernetes.default.svc
     namespace: default

@@ -55,6 +55,11 @@ reports_enabled() {
     [ "$(kubectl get deploy kyverno-reports-controller -n kyverno -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ] 2>/dev/null
 }
 
+# One line per exception: namespace, reason (tab separated)
+exceptions() {
+    kubectl get configmap fortress-exceptions -n kyverno -o go-template='{{range $ns, $why := .data}}{{$ns}}{{"\t"}}{{$why}}{{"\n"}}{{end}}' 2>/dev/null || true
+}
+
 # Pods, Jobs and ReplicaSets created by another workload - reported through their owner
 owned_objects() {
     kubectl get pods,jobs,replicasets -A -o go-template='{{range .items}}{{if .metadata.ownerReferences}}{{.metadata.namespace}}/{{.kind}}/{{.metadata.name}}{{"\n"}}{{end}}{{end}}' 2>/dev/null
@@ -172,6 +177,15 @@ cmd_status() {
     printf "Isolation   "
     kubectl get appproject fortress-user-workloads -n argocd >/dev/null 2>&1 && ok "user project active" || bad "user project missing"
 
+    local ex
+    ex=$(exceptions)
+    if [ -z "$ex" ]; then
+        echo "Exceptions  none"
+    else
+        echo -e "Exceptions  ${YELLOW}$(echo "$ex" | grep -c .)${NC}"
+        echo "$ex" | awk -F'\t' '{printf "              %s - \"%s\"\n", $1, $2}'
+    fi
+
     printf "Falco       "
     [ "$(kubectl get ds falco -n falco -o jsonpath='{.status.numberReady}' 2>/dev/null)" -ge 1 ] 2>/dev/null && ok "running" || bad "not running"
 
@@ -196,7 +210,9 @@ cmd_audit_report() {
     reports_enabled || die "Kyverno reports controller is not running - nothing to audit."
     local v
     v=$(violations)
-    echo -e "Mode: $(live_mode)\n"
+    echo "Mode: $(live_mode)"
+    if [ -n "$(exceptions)" ]; then echo "Exceptions (not audited): $(exceptions | cut -f1 | paste -sd, - | sed 's/,/, /g')"; fi
+    echo
     if [ -z "$v" ]; then
         ok "All $(workloads | grep -c . || true) workloads meet the $(policy_count) policies."
         echo
@@ -272,6 +288,67 @@ cmd_mode_learning() {
     ok "Learning mode is active. When your apps are fixed, run: $CMD mode enforce"
 }
 
+# For tools that really need privileges (storage drivers, VPNs, node agents)
+cmd_allow() {
+    local remove=false reason="" ns namespaces=()
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --remove) remove=true ;;
+            --reason) reason="${2:-}"; shift ;;
+            *)        namespaces+=("$1") ;;
+        esac
+        shift
+    done
+    [ ${#namespaces[@]} -gt 0 ] || { usage; exit 1; }
+    require_install
+    header "EXCEPTIONS"
+
+    for ns in "${namespaces[@]}"; do
+        # Exact names only - a wildcard would also cover namespaces created later
+        [[ "$ns" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] && [ ${#ns} -le 63 ] || die "'$ns' is not a valid namespace name. Wildcards are not allowed."
+        if [[ "$ns" =~ $PLATFORM_NS ]]; then die "$ns is a Fortress platform namespace - it is already excluded."; fi
+        if [ "$ns" = "default" ]; then die "default usually holds your apps. Fix the app instead: $CMD audit report"; fi
+    done
+
+    if [ "$remove" = "true" ]; then
+        for ns in "${namespaces[@]}"; do
+            if exceptions | cut -f1 | grep -qx "$ns"; then
+                kubectl patch configmap fortress-exceptions -n kyverno --type json -p "[{\"op\":\"remove\",\"path\":\"/data/$ns\"}]" >/dev/null
+                ok "Removed: $ns - the policies apply there again."
+            else
+                echo "$ns has no exception."
+            fi
+        done
+    else
+        [ -n "$reason" ] || die 'Add a reason: --reason "why this tool needs it"'
+        if [[ "$reason" == *[\"\\]* || "$reason" =~ [[:cntrl:]] ]]; then die "The reason cannot contain quotes, backslashes or line breaks."; fi
+        for ns in "${namespaces[@]}"; do
+            kubectl get namespace "$ns" >/dev/null 2>&1 || echo -e "${YELLOW}Note:${NC} $ns does not exist yet."
+        done
+        echo "Pods in ${namespaces[*]} will skip $(( $(policy_count) - 1 )) policies (root, privileged, limits...)."
+        echo "Use it only for tools that need it. Most apps just need a fix: $CMD audit report"
+        echo "Still protected: kubectl debug, Argo CD user apps, Falco alerts."
+        read -r -p "Type 'allow' to confirm: " CONFIRM || true
+        [ "$CONFIRM" = "allow" ] || { echo "Nothing was changed."; exit 1; }
+
+        local data=""
+        for ns in "${namespaces[@]}"; do data="$data\"$ns\":\"$reason\","; done
+        kubectl get configmap fortress-exceptions -n kyverno >/dev/null 2>&1 || kubectl create configmap fortress-exceptions -n kyverno >/dev/null
+        kubectl patch configmap fortress-exceptions -n kyverno --type merge -p "{\"data\":{${data%,}}}" >/dev/null
+        # Kyverno keeps old results for namespaces it no longer checks
+        for ns in "${namespaces[@]}"; do
+            kubectl delete policyreports -n "$ns" --all >/dev/null 2>&1 || true
+        done
+        ok "Exception added: ${namespaces[*]}"
+    fi
+
+    # Kyverno does not rescan when exceptions change - a restart refreshes the reports
+    if reports_enabled; then
+        kubectl rollout restart deploy kyverno-reports-controller -n kyverno >/dev/null
+        echo "Reports will refresh in about a minute."
+    fi
+}
+
 usage() {
     cat <<EOF
 Fortress in a Box CLI
@@ -282,12 +359,17 @@ Fortress in a Box CLI
   fortress mode enforce         Block insecure workloads (refuses if apps would break)
   fortress mode enforce --force Switch anyway, after typing 'enforce'
   fortress mode learning        Only warn, while you fix your apps
+  fortress allow <ns>... --reason "why"
+                                Let a tool that needs privileges run in these namespaces
+  fortress allow --remove <ns>  Apply the policies there again
 EOF
 }
 
 # ============================================================
 # MAIN
 # ============================================================
+[ "${1:-}" = "allow" ] && { shift; cmd_allow "$@"; exit; }
+
 FORCE=false
 [ "${3:-}" = "--force" ] && FORCE=true
 

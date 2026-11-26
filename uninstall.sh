@@ -69,7 +69,7 @@ helm uninstall loki -n monitoring || true
 kubectl delete namespace monitoring --ignore-not-found --timeout=5m
 
 print_step "Uninstalling Kyverno and Policies..."
-kubectl delete -f "$SCRIPT_DIR/k8s/policies/" --ignore-not-found || true
+kubectl delete -f "$SCRIPT_DIR/k8s/policies/" -f "$SCRIPT_DIR/k8s/kyverno/" --ignore-not-found || true
 helm uninstall kyverno -n kyverno || true
 # Leftover Kyverno webhooks would block every new pod in the cluster
 kubectl delete validatingwebhookconfigurations,mutatingwebhookconfigurations \

@@ -57,8 +57,8 @@ The pattern is always the same: small team, critical data, zero security budget.
 Fortress raises the bar, but it is not a complete security program:
 
 - **Cluster and ArgoCD admins.** Anyone with admin access to the cluster or the ArgoCD UI can turn Fortress off. Protect these credentials and change the ArgoCD password after installing.
-- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work), nor are GKE's managed namespaces (`gke-managed-*`, `gmp-system`, `gmp-public`). Your apps cannot deploy there, but cluster admins can. Other platforms (for example Rancher, EKS or AKS) may run their own system components in other namespaces: they appear in `fortress audit report`, and `fortress mode enforce` refuses until they are fixed or excluded.
-- **Infrastructure tools that need privileges.** Most tools pass once you configure them (for example resource limits in their Helm values; `fortress audit report` shows what to set). Tools that must run privileged, such as storage drivers, VPNs or node agents, cannot meet the policies: keep Fortress in learning mode, or exclude their namespace in your copy of the policies.
+- **Platform namespaces.** `kube-system`, `argocd`, `monitoring`, `falco` and `kyverno` are not checked by the policies (Falco needs privileges to work), nor are GKE's managed namespaces (`gke-managed-*`, `gmp-system`, `gmp-public`). Your apps cannot deploy there, but cluster admins can. Other platforms (for example Rancher, EKS or AKS) may run their own system components in other namespaces: they appear in `fortress audit report`, and `fortress mode enforce` refuses until they are fixed or allowed with `fortress allow`.
+- **Namespaces with an exception.** Pods in namespaces added with `fortress allow` skip the pod policies. Only cluster admins can add them, and `fortress status` always lists them (see [Tools that need privileges](#tools-that-need-privileges-fortress-allow)).
 - **`kubectl debug` access.** Debug containers are restricted, but they can still see your app's processes and network. Only give this permission to people you trust.
 - **What you delete from Git.** ArgoCD removes from the cluster whatever you remove from your app repository, including volumes and their data.
 - **Alert history.** Loki and Grafana do not use persistent storage yet, so stored alerts are lost when their pods restart. Discord alerts are not affected.
@@ -194,6 +194,8 @@ The installer can add `fortress` to your PATH (`~/.local/bin`). Otherwise, run `
 | `fortress audit status` | One-line summary |
 | `fortress mode enforce` | Switch to enforce mode (refuses if an app would break) |
 | `fortress mode learning` | Switch to learning mode (asks first) |
+| `fortress allow <namespace>... --reason "why"` | Let a tool that needs privileges run in these namespaces |
+| `fortress allow --remove <namespace>` | Apply the policies there again |
 
 ```
 $ fortress audit report
@@ -209,6 +211,25 @@ How to fix:
 ```
 
 Use the CLI from the folder you installed from. It refuses to change modes if that folder is a different Fortress version than the cluster.
+
+### Tools that need privileges (`fortress allow`)
+
+Most tools pass the policies once you configure them. cert-manager and Traefik, for example, only need resource limits in their Helm values, and `fortress audit report` shows what to set. Fix the app first.
+
+Some tools must run privileged to work, such as storage drivers (Longhorn, Rook), VPNs or node agents. For those, add an exception for their namespace:
+
+```
+$ fortress allow longhorn-system --reason "Longhorn needs privileged access to disks"
+```
+
+- Use exact names. Several namespaces can go in one command, and wildcards are not allowed.
+- Platform namespaces and `default` are refused.
+- `fortress status` lists every exception with its reason. `fortress audit report` does not audit those namespaces.
+- Still protected there: `kubectl debug` restrictions and Falco alerts. Apps deployed through the `fortress-user-workloads` project cannot use the exception, so a user app cannot deploy privileged containers into `longhorn-system`.
+- Install these tools with Helm, `kubectl`, or an Argo CD app in another project. The user project cannot create cluster-wide resources such as CRDs or StorageClasses anyway.
+- Exceptions are stored in the `fortress-exceptions` ConfigMap in the `kyverno` namespace, not in Git. Only cluster admins can change it.
+- In learning mode, user apps can still deploy into these namespaces, because the policies only warn.
+- Fortress identifies Argo CD apps by their tracking annotation, the Argo CD default. If you switch Argo CD to label tracking, apps from every project are treated like user apps in these namespaces.
 
 ---
 
