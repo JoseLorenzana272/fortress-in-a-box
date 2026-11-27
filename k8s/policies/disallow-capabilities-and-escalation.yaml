@@ -26,6 +26,10 @@ spec:
   variables:
     - name: allContainers
       expression: "object.spec.containers + object.spec.?initContainers.orValue([])"
+    # Kubernetes allows escalation when the field is not set
+    - name: escalating
+      expression: >
+        variables.allContainers.filter(c, c.?securityContext.?allowPrivilegeEscalation.orValue(true) != false)
   validations:
     # Only NET_BIND_SERVICE allowed - blocks SYS_ADMIN, CAP_SYS_ADMIN, sys_admin, etc.
     - message: "FORTRESS SECURITY: Containers cannot add Linux capabilities (only NET_BIND_SERVICE is allowed)."
@@ -38,11 +42,10 @@ spec:
             cap.upperAscii() in ['NET_BIND_SERVICE', 'CAP_NET_BIND_SERVICE']
           )
         )
-    # Block only when set to true - apps that don't set it still work
-    - message: "FORTRESS SECURITY: Containers cannot set allowPrivilegeEscalation: true."
-      expression: >
-        variables.allContainers.all(c,
-          !has(c.securityContext) ||
-          !has(c.securityContext.allowPrivilegeEscalation) ||
-          c.securityContext.allowPrivilegeEscalation == false
-        )
+    # Must be false - setuid programs like su or sudo would let the container become root
+    - expression: "size(variables.escalating) == 0"
+      message: "FORTRESS SECURITY: Containers must set securityContext.allowPrivilegeEscalation: false."
+      messageExpression: >
+        (size(variables.escalating) == 1 ? 'FORTRESS SECURITY: Container "' : 'FORTRESS SECURITY: Containers "') +
+        variables.escalating.map(c, c.name).join('", "') +
+        '" must set securityContext.allowPrivilegeEscalation: false.'
