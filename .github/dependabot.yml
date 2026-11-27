@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Actions are pinned by SHA - this opens one PR a month when there are new versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
