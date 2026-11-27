@@ -321,7 +321,9 @@ Fortress enforces 9 security policies. Your deployment(s) must satisfy these 8 (
 | `require-readonly-rootfs` | `readOnlyRootFilesystem: true` |
 | `disallow-host-network` | `hostNetwork` not set or `false` |
 | `disallow-host-namespaces` | `hostPID` and `hostIPC` not set or `false` |
-| `disallow-capabilities-and-escalation` | No added Linux capabilities (except `NET_BIND_SERVICE`) and `allowPrivilegeEscalation` not set to `true` |
+| `disallow-capabilities-and-escalation` | `allowPrivilegeEscalation: false` on each container, and no added Linux capabilities (except `NET_BIND_SERVICE`) |
+
+`allowPrivilegeEscalation: false` stops programs like `su` or `sudo` from giving root inside the container. Kubernetes allows escalation when the field is missing, so it must be written explicitly.
 
 Most apps never declare capabilities, so they pass without changes. Apps that genuinely need extra capabilities (for example a VPN sidecar that needs `NET_ADMIN`) will be rejected; ask your cluster admin before adding them.
 
