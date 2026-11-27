@@ -289,6 +289,9 @@ install_monitoring() {
         --set backend.replicas=0 \
         --set chunksCache.enabled=false \
         --set resultsCache.enabled=false \
+        --set loki.limits_config.retention_period=720h \
+        --set loki.compactor.retention_enabled=true \
+        --set loki.compactor.delete_request_store=filesystem \
         --wait \
         --timeout 10m
 
@@ -308,13 +311,20 @@ install_monitoring() {
         --set admin.userKey=admin-user \
         --set admin.passwordKey=admin-password \
         --set service.type=ClusterIP \
-        --set persistence.enabled=false \
+        --set persistence.enabled=true \
+        --set persistence.size=2Gi \
+        --set deploymentStrategy.type=Recreate \
+        --set initChownData.enabled=false \
         --set sidecar.dashboards.enabled=true \
         --set sidecar.dashboards.label=grafana_dashboard \
         --set sidecar.datasources.enabled=true \
         --set sidecar.datasources.label=grafana_datasource \
         --wait \
         --timeout 10m
+
+    # Grafana keeps its first password on disk - the one you typed now always wins
+    kubectl exec -i deploy/grafana -n monitoring -c grafana -- \
+        grafana cli admin reset-admin-password --password-from-stdin <<< "$GRAFANA_PASSWORD" >/dev/null
 
     print_step "Importing Fortress security dashboard..."
     kubectl create configmap fortress-dashboard \
