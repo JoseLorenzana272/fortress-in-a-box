@@ -61,7 +61,7 @@ Fortress raises the bar, but it is not a complete security program:
 - **Namespaces with an exception.** Pods in namespaces added with `fortress allow` skip the pod policies. Only cluster admins can add them, and `fortress status` always lists them (see [Tools that need privileges](#tools-that-need-privileges-fortress-allow)).
 - **`kubectl debug` access.** Debug containers are restricted, but they can still see your app's processes and network. Only give this permission to people you trust.
 - **What you delete from Git.** ArgoCD removes from the cluster whatever you remove from your app repository, including volumes and their data.
-- **Alert history.** Loki and Grafana do not use persistent storage yet, so stored alerts are lost when their pods restart. Discord alerts are not affected.
+- **Alert history.** Loki keeps alerts and logs for 30 days on a 10 GB disk, then deletes them. Save anything you need for an investigation before that. Grafana keeps the dashboards and alerts you create on its own 2 GB disk.
 - **Learning mode.** While Fortress is in learning mode, the pod policies only warn, so insecure workloads are allowed. Use it while you fix your apps, then switch to enforce.
 - **Outside the cluster.** Phishing, stolen GitHub accounts, secrets committed to code and backups are out of scope.
 
